@@ -1,1 +1,0 @@
-g++ -DTEST_OSM osm.cc tinyxml.cpp tinyxmlparser.cpp tinyxmlerror.cpp -o osm -std=c++17 -O2 -Wall
