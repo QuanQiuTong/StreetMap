@@ -1,0 +1,4 @@
+- File `tinyxml.h tinyxml.cpp tinyxmlparser.cpp tinyxmlerror.cpp` remains unchanged.
+- For the only file which includes `tinyxml.h` has defined `TIXML_USE_STL`,   
+  there is no need to include `tinystr.h` and its cpp.  
+  Just for less space occupancy.
