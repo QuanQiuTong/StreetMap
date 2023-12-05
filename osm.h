@@ -7,10 +7,8 @@
 
 #include <vector>
 #include <map>
+#include <unordered_map>
 #include <string>
-
-#define TIXML_USE_STL
-#include "tinyxml.h"
 
 #define NAMESPACE_OSM \
     namespace osm     \
@@ -39,8 +37,9 @@ struct Way
 };
 struct Member
 {
-    std::string type, role;
+    std::string type;
     ll ref;
+    std::string role;
     Member() = default;
     Member(std::string _type, ll _ref, std::string _role) : type(_type), ref(_ref), role(_role) {}
 };
@@ -56,8 +55,14 @@ struct element : public Metadata
     ll id;
 };
 
-template <template <typename Key, typename Val> typename AssocCon>
-Bounds parse(FILE *infile, AssocCon<ll, Node> &nodes, AssocCon<ll, Way> &ways, AssocCon<ll, Relation> &relations);
+template <typename Key, typename Val>
+using AssocCon = std::unordered_map<Key, Val>;
+
+extern AssocCon<ll, Node> nodes;
+extern AssocCon<ll, Way> ways;
+extern AssocCon<ll, Relation> relations;
+
+Bounds parse(FILE *infile);
 
 // struct node
 // {
