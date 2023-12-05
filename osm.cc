@@ -13,52 +13,49 @@
 #define forSibling(p, t) for (; p && ((TiXmlNode *)p)->ValueTStr() == t; p = p->NextSiblingElement())
 // #define foreach_child(p, q, t) for (auto q = p->FirstChildElement(t); q; q = q->NextSiblingElement(t))
 
-static const char *Attr(TiXmlElement *p, const char *attr)
+static const char *att(TiXmlElement *p, const char *attr)
 {
     const char *ret = p->Attribute(attr);
     if (!ret)
         throw std::invalid_argument("Attribute not found");
     return ret;
 }
-static long long id(TiXmlElement *p) { return atoll(Attr(p, "id")); }
-static long long ref(TiXmlElement *p) { return atoll(Attr(p, "ref")); }
-static std::string k(TiXmlElement *p) { return Attr(p, "k"); }
-static std::string v(TiXmlElement *p) { return Attr(p, "v"); }
+static double attd(TiXmlElement *p, const char *attr) { return atof(att(p, attr)); }
+static long long id(TiXmlElement *p) { return atoll(att(p, "id")); }
+static long long ref(TiXmlElement *p) { return atoll(att(p, "ref")); }
 
 NAMESPACE_OSM
 
+double minlat, minlon, maxlat, maxlon;
 AssocCon<ll, Node> nodes;
 AssocCon<ll, Way> ways;
 AssocCon<ll, Relation> relations;
-Bounds parse(FILE *infile)
+void parse(FILE *infile)
 {
     TiXmlDocument doc;
     if (!doc.LoadFile(infile))
         throw std::invalid_argument("File not found");
-    nodes.clear(), ways.clear(), relations.clear();
     auto p = doc.RootElement()->FirstChildElement();
     while (p && ((TiXmlNode *)p)->ValueTStr() != "bounds")
         p = p->NextSiblingElement();
-    Bounds bounds = {atof(Attr(p, "minlat")), atof(Attr(p, "minlon")),
-                     atof(Attr(p, "maxlat")), atof(Attr(p, "maxlon"))};
+    minlat = attd(p, "minlat"), minlon = attd(p, "minlon"), maxlat = attd(p, "maxlat"), maxlon = attd(p, "maxlon");
     p = p->NextSiblingElement();
-    forSibling(p, "node")
-        nodes[id(p)] = {atof(Attr(p, "lon")), atof(Attr(p, "lat"))};
+    nodes.clear(), ways.clear(), relations.clear();
+    forSibling(p, "node") nodes.insert({id(p), {attd(p, "lon"), attd(p, "lat")}});
     forSibling(p, "way")
     {
         auto &w = ways[id(p)];
         auto q = p->FirstChildElement();
         forSibling(q, "nd") w.nd.push_back(nodes[ref(q)]);
-        forSibling(q, "tag") w.tag[k(q)] = v(q);
+        forSibling(q, "tag") w.tag.insert({att(p, "k"), att(p, "v")});
     }
     forSibling(p, "relation")
     {
         auto &r = relations[id(p)];
         auto q = p->FirstChildElement();
-        forSibling(q, "member") r.member.push_back({Attr(q, "type"), ref(q), Attr(q, "role")});
-        forSibling(q, "nd") r.tag[k(q)] = v(q);
+        forSibling(q, "member") r.member.push_back({att(q, "type"), ref(q), att(q, "role")});
+        forSibling(q, "nd") r.tag.insert({att(p, "k"), att(p, "v")});
     }
-    return bounds;
 }
 
 END_NAMESPACE_OSM
