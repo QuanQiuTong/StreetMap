@@ -1,5 +1,7 @@
 #include "tinyxml.h"
 
+#include <stdexcept>
+
 /**
  * The following cpp-files are included directly,
  * because they can not be compiled correctly with makefile.
@@ -15,9 +17,9 @@
 
 static const char *att(TiXmlElement *p, const char *attr)
 {
-    const char *ret = p->Attribute(attr);
+    const char *ret = p->Attribute(attr); // printf("# %s - %s\n", attr, ret);
     if (!ret)
-        throw std::invalid_argument("Attribute not found");
+        throw std::invalid_argument("Attribute "+std::string(attr)+" not found");
     return ret;
 }
 static double attd(TiXmlElement *p, const char *attr) { return atof(att(p, attr)); }
@@ -47,14 +49,14 @@ void parse(FILE *infile)
         auto &w = ways[id(p)];
         auto q = p->FirstChildElement();
         forSibling(q, "nd") w.nd.push_back(nodes[ref(q)]);
-        forSibling(q, "tag") w.tag.insert({att(p, "k"), att(p, "v")});
+        forSibling(q, "tag") w.tag.insert({att(q, "k"), att(q, "v")});
     }
     forSibling(p, "relation")
     {
         auto &r = relations[id(p)];
         auto q = p->FirstChildElement();
         forSibling(q, "member") r.member.push_back({att(q, "type"), ref(q), att(q, "role")});
-        forSibling(q, "nd") r.tag.insert({att(p, "k"), att(p, "v")});
+        forSibling(q, "nd") r.tag.insert({att(q, "k"), att(q, "v")});
     }
 }
 

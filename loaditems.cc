@@ -6,7 +6,7 @@
 #include "osm.h"
 using namespace osm; // only in this file
 
-static void loadOSM(QGraphicsScene *scene, double scale)
+static void loadOSM(QGraphicsScene *scene, double scale = 1<<18)
 {
     auto equal = [](const Node &a, const Node &b)
     { return a.lon == b.lon && a.lat == b.lat; };
@@ -40,11 +40,11 @@ static void loadOSM(QGraphicsScene *scene, double scale)
     }
 }
 
-void loadScene(QGraphicsScene *scene)
+void loadScene(QGraphicsScene *scene, const std::string& filename)
 {
-    FILE *fp = fopen("C:\\Users\\fqt15\\Documents\\StreetMap\\map.osm", "r");
+    FILE *fp = fopen(filename.c_str(), "r");
     if (!fp)
         throw std::invalid_argument("File not found");
     parse(fp);
-    loadOSM(scene, 1 << 18);
+    loadOSM(scene);
 }
