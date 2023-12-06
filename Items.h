@@ -8,6 +8,7 @@
 #include <QGraphicsItemGroup>
 #include <QPainterPath>
 #include <QPainter>
+#include <QStyleOptionGraphicsItem>
 
 class Building : public QGraphicsItem
 {
@@ -22,29 +23,6 @@ public:
         m_path.addPolygon(m_polygon);
     }
     ~Building() = default;
-
-    void setText(const QString &text)
-    {
-        m_text = text;
-        update();
-    }
-    QString text() const { return m_text; }
-    void setTextColor(const QColor &color) { m_textColor = color, update(); }
-    QColor textColor() const { return m_textColor; }
-    //    void setOutlineColor(const QColor &color) { m_group->setPen(color), update(); }
-    //    QColor outlineColor() const { return m_group->pen().color(); }
-    //    void setBackgroudColor(const QColor &color) { m_group->setBrush(color), update(); }
-    //    QColor backgroudColor() const { return m_group->brush().color(); }
-    //    void setFillColor(const QColor &color) { m_group->setBrush(color), update(); }
-    //    QColor fillColor() const { return m_group->brush().color(); }
-    void setPolygon(const QPolygonF &polygon)
-    {
-        m_polygon = polygon;
-        update();
-    }
-    QPolygonF polygon() const { return m_polygon; }
-    void setPath(const QPainterPath &path) { m_path = path, update(); }
-    QPainterPath path() const { return m_path; }
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override
     {
@@ -74,6 +52,42 @@ private:
     QColor m_textColor;
     QColor m_outlineColor;
     QColor m_backgroudColor;
+};
+
+class WayPoint : public QGraphicsItem
+{
+public:
+    WayPoint(double x, double y, double radius, QGraphicsItem *parent = nullptr)
+        : QGraphicsItem(parent), m_rect(x - radius, y - radius, 2 * radius, 2 * radius)
+    {
+        setFlags(ItemIsSelectable);
+    }
+    ~WayPoint() = default;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override
+    {
+        Q_UNUSED(widget);
+        painter->setPen(Qt::lightGray);
+        painter->setBrush((option->state & QStyle::State_Selected) ? Qt::green : Qt::white);
+        painter->drawEllipse(m_rect);
+    }
+    QRectF boundingRect() const override { return m_rect; }
+    QPainterPath shape() const override
+    {
+        QPainterPath path;
+        path.addEllipse(m_rect);
+        return path;
+    }
+
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override
+    {
+        QGraphicsItem::mousePressEvent(event);
+        update();
+        printf("mousePress\n");
+    }
+
+private:
+    QRectF m_rect;
 };
 
 #endif // ITEMS_H

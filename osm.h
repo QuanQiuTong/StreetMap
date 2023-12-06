@@ -1,12 +1,8 @@
 #ifndef OSM_H
 #define OSM_H
 
-#include <cstdlib>
-
-#include <stdexcept>
-
 #include <vector>
-#include <map>
+// #include <map>
 #include <unordered_map>
 #include <string>
 
@@ -27,6 +23,8 @@ using AssocCon = std::unordered_map<Key, Val>;
 struct Node
 {
     double lon, lat;
+    bool operator==(const Node &other)
+        const { return lon == other.lon && lat == other.lat; }
 };
 struct Way
 {
