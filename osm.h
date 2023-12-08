@@ -28,7 +28,7 @@ struct Node
 };
 struct Way
 {
-    std::vector<Node> nd;
+    std::vector<ll> nd;
     AssocCon<std::string, std::string> tag;
 };
 struct Member

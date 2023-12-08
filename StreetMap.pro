@@ -17,17 +17,17 @@ DEFINES += QT_DEPRECATED_WARNINGS
 
 SOURCES += \
     main.cpp \
+    path.cc \
     streetmap.cpp \
     viewer.cpp \
-    osm.cc \
-    loaditems.cc
+    osm.cc
 
 HEADERS += \
     items.h \
-    load.h \
+    path.h \
+    point.h \
     streetmap.h \
     viewer.h \
-    tinyxml.h \
     osm.h
 
 FORMS += \

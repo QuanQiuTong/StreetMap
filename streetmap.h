@@ -1,8 +1,6 @@
 #ifndef STREETMAP_H
 #define STREETMAP_H
 
-#include <string>
-
 #include <QMainWindow>
 #include "viewer.h"
 
@@ -19,14 +17,11 @@ public:
 
 private slots:
     void open();
-    void selectPoint(int type);
 
 private:
     QMenu *fileMenu, *selectMenu;
     QGraphicsScene *scene;
-    Viewer *view;
-    QAction* openAction, *srcAction, *dstAction;
-    std::string filename;
+    QAction* openAction, *srcAction, *dstAction, *pathAction;
 
     void createActions();
     void createMenus();

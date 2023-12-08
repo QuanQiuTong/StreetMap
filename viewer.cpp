@@ -3,11 +3,8 @@
 
 #include "viewer.h"
 
-Viewer::Viewer(QWidget *parent)
-    : QGraphicsView(parent)
-{
-    setDragMode(ScrollHandDrag); // RubberBandDrag
-}
+Viewer::Viewer(QGraphicsScene *scene, QWidget *parent)
+    : QGraphicsView(parent) { setScene(scene), setDragMode(ScrollHandDrag); /*RubberBandDrag*/ }
 
 void Viewer::wheelEvent(QWheelEvent *event)
 {
