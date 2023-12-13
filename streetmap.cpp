@@ -15,16 +15,15 @@ extern void loadScene(QGraphicsScene *, const std::string&);
 StreetMap::StreetMap(QWidget *parent)
     : QMainWindow(parent)
 {
-    createActions();
-    createMenus();
-
     scene = new QGraphicsScene;
     scene->setBackgroundBrush(QColor(255, 255, 238));
     loadScene(scene, "E:\\DSH-PJ\\South.osm");
 
-    setCentralWidget(new Viewer(scene));
+    setCentralWidget(viewer = new Viewer(scene));
 
     setWindowTitle(tr("StreetMap"));
+    createActions();
+    createMenus();
 }
 
 StreetMap::~StreetMap(){
@@ -33,6 +32,8 @@ StreetMap::~StreetMap(){
     delete srcAction;
     delete dstAction;
     delete pathAction;
+    delete clrAction;
+    delete rmvAction;
 }
 
 void StreetMap::createActions(){
@@ -45,16 +46,27 @@ void StreetMap::createActions(){
     connect(dstAction, &QAction::triggered, &receiver, &Receiver::selectDestination);
     pathAction = new QAction(tr("Find Shortest Path"), this);
     connect(pathAction,  &QAction::triggered, &receiver, &Receiver::findAndShow);
+    unshowPathAction = new QAction(tr("Unshow Path"), this);
+    connect(unshowPathAction, &QAction::triggered, &receiver, &Receiver::clearPath);
+
+    clrAction = new QAction(tr("Clear Selected Points"), this);
+    connect(clrAction, &QAction::triggered, viewer, &Viewer::clearPoints);
+    rmvAction = new QAction(tr("Remove Last Selected Point"), this);
+    connect(rmvAction, &QAction::triggered, viewer, &Viewer::removeLastPoint);
 }
 
 void StreetMap::createMenus(){
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->addAction(openAction);
 
-    selectMenu = menuBar()->addMenu(tr("&Path"));
-    selectMenu->addAction(srcAction);
-    selectMenu->addAction(dstAction);
-    selectMenu->addAction(pathAction);
+    pathMenu = menuBar()->addMenu(tr("&Path"));
+    pathMenu->addAction(srcAction);
+    pathMenu->addAction(dstAction);
+    pathMenu->addAction(pathAction);
+
+    selectMenu = menuBar()->addMenu(tr("&Select"));
+    selectMenu->addAction(clrAction);
+    selectMenu->addAction(rmvAction);
 }
 
 void StreetMap::open(){

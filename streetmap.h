@@ -19,9 +19,10 @@ private slots:
     void open();
 
 private:
-    QMenu *fileMenu, *selectMenu;
+    QMenu *fileMenu, *pathMenu, *selectMenu;
     QGraphicsScene *scene;
-    QAction* openAction, *srcAction, *dstAction, *pathAction;
+    Viewer *viewer;
+    QAction *openAction, *srcAction, *dstAction, *pathAction, *unshowPathAction, *clrAction, *rmvAction;
 
     void createActions();
     void createMenus();

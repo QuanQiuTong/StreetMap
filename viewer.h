@@ -1,21 +1,26 @@
 #ifndef VIEWER_H
 #define VIEWER_H
 
+#include <vector>
 #include <QGraphicsView>
-//#include <cstdio>
 class QGraphicsScene;
+class SelectPoint;
 
 class Viewer : public QGraphicsView
 {
     Q_OBJECT
 public:
     Viewer(QGraphicsScene *scene, QWidget *parent = nullptr);
-    //~Viewer(){puts("Auto del");}
+public slots:
+    void clearPoints();
+    void removeLastPoint();
 
 protected:
-    void wheelEvent(QWheelEvent *);
+    void wheelEvent(QWheelEvent *) override;
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
+private:
+    QGraphicsScene *m_scene;
+    std::vector<SelectPoint*> selectedPoints;
 };
-
-extern double viewerFactor;
 
 #endif // VIEWER_H

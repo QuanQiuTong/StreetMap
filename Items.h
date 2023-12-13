@@ -5,7 +5,6 @@
 #include <QPointF>
 #include <QPolygonF>
 #include <QGraphicsItem>
-#include <QGraphicsItemGroup>
 #include <QPainterPath>
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
@@ -19,8 +18,11 @@ class Building : public QGraphicsItem
     QString m_text;
 
 public:
-    Building(const QPolygonF &poly, const QString &text = "", QGraphicsItem *parent = nullptr)
-        : QGraphicsItem(parent), m_polygon(poly), m_text(text) { /*setFlags(ItemIsSelectable),*/ m_path.addPolygon(m_polygon); }
+    Building(QPolygonF poly, const QString &text = "", QGraphicsItem *parent = nullptr)
+        : QGraphicsItem(parent), m_polygon(poly), m_text(text)
+    { /*setFlags(ItemIsSelectable),*/
+        m_path.addPolygon(m_polygon);
+    }
 
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
     {
@@ -34,49 +36,31 @@ public:
     QRectF boundingRect() const override { return m_polygon.boundingRect(); }
     QPainterPath shape() const override { return m_path; }
 
-// protected:
-//     void mousePressEvent(QGraphicsSceneMouseEvent *event)
-//         override { QGraphicsItem::mousePressEvent(event), update(); }
+    // protected:
+    //     void mousePressEvent(QGraphicsSceneMouseEvent *event)
+    //         override { QGraphicsItem::mousePressEvent(event), update(); }
 };
 
-class WayPoint : public QGraphicsItem
+#include <QGraphicsEllipseItem>
+
+class WayPoint : public QGraphicsEllipseItem
 {
+    long long m_id;
+
 public:
     WayPoint(double x, double y, double radius = 5, long long id = 0, QGraphicsItem *parent = nullptr)
-        : QGraphicsItem(parent), m_rect(x - radius, y - radius, 2 * radius, 2 * radius), m_id(id) { setFlags(ItemIsSelectable); }
+        : QGraphicsEllipseItem(x - radius, y - radius, 2 * radius, 2 * radius, parent), m_id(id) { setFlags(ItemIsSelectable); }
     WayPoint(QPointF p, long long id, double radius = 5, QGraphicsItem *parent = nullptr)
-        : QGraphicsItem(parent), m_rect(p.x() - radius, p.y() - radius, 2 * radius, 2 * radius), m_id(id) { setFlags(ItemIsSelectable); }
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override
+        : QGraphicsEllipseItem(p.x() - radius, p.y() - radius, 2 * radius, 2 * radius, parent), m_id(id) { setFlags(ItemIsSelectable); }
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *) override
     {
-        Q_UNUSED(widget);
         painter->setPen(Qt::lightGray);
         painter->setBrush((option->state & QStyle::State_Selected) ? Qt::green : Qt::white);
-        painter->drawEllipse(m_rect);
-    }
-    QRectF boundingRect() const override { return m_rect; }
-    QPainterPath shape() const override
-    {
-        QPainterPath path;
-        path.addEllipse(m_rect);
-        return path;
+        painter->drawEllipse(rect());
     }
 
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) override
-    {
-        QGraphicsItem::mousePressEvent(event);
-        update();
-        if (!path::SRC)
-            path::SRC = m_id;
-        else if (m_id != path::SRC && !path::DST)
-            path::DST = m_id, receiver.findAndShow();
-        else if (m_id != path::DST)
-            path::SRC = path::DST, path::DST = m_id, receiver.findAndShow();
-    }
-
-private:
-    QRectF m_rect;
-    long long m_id;
+    void mousePressEvent(QGraphicsSceneMouseEvent *) override { receiver.selectWayPoint(m_id); }
 };
 
 class Path : public QGraphicsItem
@@ -84,16 +68,11 @@ class Path : public QGraphicsItem
     QPainterPath m_path;
 
 public:
-    double width;
-    Path(const QPainterPath &path, QGraphicsItem *parent = nullptr) : QGraphicsItem(parent), m_path(path), width(2) {}
-    ~Path()
-    {
-        // prepareGeometryChange();
-        // printf("Path Removed (automatically)\n");
-    }
+    Path(QPainterPath path, QGraphicsItem *parent = nullptr) : QGraphicsItem(parent), m_path(path) {}
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget = nullptr) override
     {
-        Q_UNUSED(option) Q_UNUSED(widget)
+        Q_UNUSED(option)
+        Q_UNUSED(widget)
         QPen pen(Qt::red, 4);
         pen.setWidthF(pen.widthF() / painter->transform().m11());
         painter->setPen(pen);
@@ -102,6 +81,30 @@ public:
     QRectF boundingRect() const override { return m_path.boundingRect(); }
     QPainterPath shape() const override { return m_path; }
 };
-extern Path *shortPath;
+
+class SelectPoint : public QGraphicsItem
+{
+    static size_t cnt;
+    QPointF point;
+    double radius;
+
+public:
+    SelectPoint(QPointF p, QGraphicsItem *parent = nullptr) : QGraphicsItem(parent), point(p), radius(6.0) {}
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
+    {
+        radius = 6.0 / painter->transform().m11();
+        painter->setPen(Qt::lightGray);
+        painter->setBrush(Qt::red);
+        painter->drawEllipse(point, radius, radius);
+    }
+    QRectF boundingRect() const override { return {point.x() - radius, point.y() - radius, 2 * radius, 2 * radius}; }
+    QPainterPath shape() const override
+    {
+        QPainterPath path;
+        path.addEllipse(boundingRect());
+        return path;
+    }
+    void mousePressEvent(QGraphicsSceneMouseEvent *) override { receiver.selectRandomPoint(point); }
+};
 
 #endif // ITEMS_H

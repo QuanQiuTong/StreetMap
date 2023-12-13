@@ -2,6 +2,7 @@
 
 #include <cmath>
 #include <queue>
+#include <set>
 #include <algorithm>
 #include <QGraphicsScene>
 #include <QGraphicsPathItem>
@@ -50,7 +51,8 @@ static std::vector<ll> dijkstra(ll src, ll dst)
     for (auto u = dst; u != src; u = prev[u])
         ret.push_back(u);
     ret.push_back(src);
-    std::reverse(ret.begin(), ret.end());
+    //std::reverse(ret.begin(), ret.end());
+    
     // printf("Path:\n");
     // for(auto id: ret)
     //     printf("%lld ",id);
@@ -61,11 +63,45 @@ static std::vector<ll> dijkstra(ll src, ll dst)
 END_NAMESPACE_PATH;
 using namespace path;
 
-
 Receiver receiver;
+void Receiver::selectWayPoint(long long id)
+{
+    if (!SRC)
+        SRC = id;
+    else if (id != SRC && !DST)
+        DST = id, receiver.findAndShow();
+    else if (id != DST)
+        SRC = DST, DST = id, receiver.findAndShow();
+}
+extern std::set<long long> waypoints;
+long long nearestPoint(Point point)
+{
+    return *std::min_element(waypoints.begin(), waypoints.end(), [point](auto a, auto b)
+                            { return distance(point, a) < distance(point, b); });
+}
+void Receiver::selectRandomPoint(Point point)
+{
+    if (!SRC)
+        SRC = nearestPoint(point);
+    else if (SRC != nearestPoint(point) && !DST)
+        DST = nearestPoint(point), receiver.findAndShow();
+    else if (DST != nearestPoint(point))
+        SRC = DST, DST = nearestPoint(point), receiver.findAndShow();
+    printf("SRC: %lld, DST: %lld\n", SRC, DST);
+}
+
+Path *Receiver::shortPath = nullptr;
+
+void Receiver::clearPath()
+{
+    if (shortPath)
+        pscene->removeItem(shortPath), shortPath = nullptr;
+    SRC = DST = 0;
+}
+
 void Receiver::findAndShow()
 {
-    static Path *shortPath;
+    printf("## SRC: %lld, DST: %lld\n", SRC, DST);
     if (shortPath)
         pscene->removeItem(shortPath), shortPath = nullptr;
     std::vector<ll> path = dijkstra(SRC, DST);

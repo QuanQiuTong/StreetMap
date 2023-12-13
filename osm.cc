@@ -65,7 +65,7 @@ END_NAMESPACE_OSM
 
 using namespace osm; // only in this file
 
-static std::set<ll> waypoints;
+std::set<ll> waypoints;
 static void loadWay(QGraphicsScene *scene, const Way &way)
 {
     if (way.nd.front() == way.nd.back()) // closed way
