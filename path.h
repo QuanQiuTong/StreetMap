@@ -40,18 +40,20 @@ public slots:
     void clearPath();
 
 private:
-    struct SourceDestination
-    {
-        bool onWay;
-        union
-        {
-            Point p;
-            long long id;
-        } point;
-    } src, dst;
+    // struct SourceDestination
+    // {
+    //     bool onWay;
+    //     union
+    //     {
+    //         Point p;
+    //         long long id;
+    //     } point;
+    // } src, dst;
+
     static Path *shortPath;
 
 public:
+    Point srcPos, dstPos;
     path::ll lastSelected;
     void selectWayPoint(path::ll point);
     void selectRandomPoint(Point point);

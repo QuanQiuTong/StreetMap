@@ -12,7 +12,7 @@ struct Point
 {
     double x, y;
     static constexpr double xScale = 0.8544 * R, yScale = -R;
-    Point() = default;
+    Point(double x = 0, double y = 0) : x(x), y(y){};
     Point(osm::Node node) : x(node.lon * xScale), y(node.lat * yScale) {}
     // This is WRONG!!!!!!!!!!!!//Point(QPointF qPointF) : x(qPointF.x() * xScale), y(qPointF.y() * yScale) {}
     Point(QPointF qPointF) : x(qPointF.x()), y(qPointF.y()) {}
@@ -25,7 +25,9 @@ struct Point
     operator QPointF() const { return {x, y}; }
 
     bool operator<(const Point &rhs) const { return x < rhs.x || (x == rhs.x && y < rhs.y); }
-    friend double distance(const Point &lhs, const Point &rhs) { return hypot(lhs.x - rhs.x, lhs.y - rhs.y); }
+    operator bool() const { return x || y; }
+    friend bool operator==(Point p, Point q) { return p.x == q.x && p.y == q.y; }
+    friend double distance(Point p, Point q) { return hypot(p.x - q.x, p.y - q.y); }
 };
 
 struct idPoint : public Point

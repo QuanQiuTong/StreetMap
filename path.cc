@@ -19,7 +19,7 @@ AssocCon<ll, std::vector<ll>> path;
 ll SRC, DST;
 void addEdge(ll u, ll v) { path[u].push_back(v), path[v].push_back(u); }
 
-static std::vector<ll> dijkstra(ll src, ll dst)
+static std::vector<Point> dijkstra(ll src, ll dst)
 {
     struct Node
     {
@@ -47,16 +47,11 @@ static std::vector<ll> dijkstra(ll src, ll dst)
                 prev[v] = u,
                 q.push({v, alt});
     }
-    std::vector<ll> ret;
+    std::vector<Point> ret;
     for (auto u = dst; u != src; u = prev[u])
-        ret.push_back(u);
-    ret.push_back(src);
-    //std::reverse(ret.begin(), ret.end());
-    
-    // printf("Path:\n");
-    // for(auto id: ret)
-    //     printf("%lld ",id);
-    // puts("");
+        ret.push_back(Point(u));
+    ret.push_back(Point(src));
+    std::reverse(ret.begin(), ret.end());
     return ret;
 }
 
@@ -65,29 +60,36 @@ using namespace path;
 
 Receiver receiver;
 void Receiver::selectWayPoint(long long id)
-{
+{ // printf("0@ SRC: %lld, DST: %lld\n", SRC, DST);
     if (!SRC)
+        // puts("*1"),
         SRC = id;
-    else if (id != SRC && !DST)
-        DST = id, receiver.findAndShow();
-    else if (id != DST)
-        SRC = DST, DST = id, receiver.findAndShow();
+    else if (!DST)
+        // puts("*2"),
+        DST = id, findAndShow();
+    else
+        // puts("*3"),
+        SRC = DST, srcPos = dstPos, DST = id, dstPos = Point(), findAndShow();
+    // printf("1@ SRC: %lld, DST: %lld\n", SRC, DST);
 }
 extern std::set<long long> waypoints;
 long long nearestPoint(Point point)
 {
     return *std::min_element(waypoints.begin(), waypoints.end(), [point](auto a, auto b)
-                            { return distance(point, a) < distance(point, b); });
+                             { return distance(point, a) < distance(point, b); });
 }
 void Receiver::selectRandomPoint(Point point)
-{
+{ // printf("2@ SRC: %lld, DST: %lld\n", SRC, DST);
     if (!SRC)
-        SRC = nearestPoint(point);
-    else if (SRC != nearestPoint(point) && !DST)
-        DST = nearestPoint(point), receiver.findAndShow();
-    else if (DST != nearestPoint(point))
-        SRC = DST, DST = nearestPoint(point), receiver.findAndShow();
-    printf("SRC: %lld, DST: %lld\n", SRC, DST);
+        // puts("*4"),
+        SRC = nearestPoint(point), srcPos = point;
+    else if (!DST)
+        // puts("*5"),
+        DST = nearestPoint(point), dstPos = point, findAndShow();
+    else
+        // puts("*6"),
+        SRC = DST, srcPos = dstPos, DST = nearestPoint(point), dstPos = point, findAndShow();
+    // printf("3@ SRC: %lld, DST: %lld\n", SRC, DST);
 }
 
 Path *Receiver::shortPath = nullptr;
@@ -97,6 +99,7 @@ void Receiver::clearPath()
     if (shortPath)
         pscene->removeItem(shortPath), shortPath = nullptr;
     SRC = DST = 0;
+    srcPos = dstPos = Point();
 }
 
 void Receiver::findAndShow()
@@ -104,12 +107,18 @@ void Receiver::findAndShow()
     printf("## SRC: %lld, DST: %lld\n", SRC, DST);
     if (shortPath)
         pscene->removeItem(shortPath), shortPath = nullptr;
-    std::vector<ll> path = dijkstra(SRC, DST);
     QPainterPath painterPath;
+    std::vector<Point> path = dijkstra(SRC, DST);
+
+    if (srcPos)
+        path.insert(path.begin(), srcPos);
+    if (dstPos)
+        path.push_back(dstPos);
+
     auto it = path.begin();
-    painterPath.moveTo(Point(*it));
+    painterPath.moveTo(*it);
     while (++it != path.end())
-        painterPath.lineTo(Point(*it));
+        painterPath.lineTo(*it);
     pscene->addItem(shortPath = new Path(painterPath));
     // pscene->update();
 }
