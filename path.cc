@@ -8,7 +8,7 @@
 
 #include "viewer.h"
 #if VISIBLE
-#define visitEdge(u, v) visible.addEdge(u, v),
+#define visitEdge(u, v) visible.addLine(u, v),
 #else
 #define visitEdge(u, v)
 #endif

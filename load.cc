@@ -33,9 +33,8 @@ static void loadOpenWay(const Way &way)
 {
     if(!way.tag.count("highway"))
         return;
-    QPainterPath painterPath;
     auto it = way.nd.begin();
-    painterPath.moveTo(Point(*it));
+    QPainterPath painterPath{Point(*it)};
     waypoints.insert(*it);
     while (++it != way.nd.end())
     {
@@ -63,10 +62,10 @@ bool loadScene(const std::string &filename)
     scene->setSceneRect(minlon * Point::xScale, maxlat * Point::yScale, (maxlon - minlon) * Point::xScale, (minlat - maxlat) * Point::yScale);
     waypoints.clear();
 
-    for (auto &&p : closedways)
-        loadClosedWay(p.second);
-    for (auto &&p : openways)
-        loadOpenWay(p.second);
+    for (auto &&w : closedways)
+        loadClosedWay(w);
+    for (auto &&w : openways)
+        loadOpenWay(w);
     for (auto id : waypoints)
         scene->addItem(new WayPoint(Point(id), id));
     return true;

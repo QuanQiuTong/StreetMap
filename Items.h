@@ -69,6 +69,7 @@ public:
     }
     void mousePressEvent(QGraphicsSceneMouseEvent *) override
     {
+        using namespace path;
         if (!SRC)
             SRC = nearestPoint(point), srcPos = point;
         else if (!DST)

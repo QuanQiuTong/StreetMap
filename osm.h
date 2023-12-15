@@ -52,7 +52,8 @@ struct Way
 
 extern double minlat, minlon, maxlat, maxlon;
 extern AssocCon<long long, Node> nodes;
-extern AssocCon<long long, Way> closedways, openways;
+extern std::vector<Way> closedways, openways;
+//extern AssocCon<long long, Way> ways;
 // extern AssocCon<long long, Relation> relations;
 
 void parse(FILE *);

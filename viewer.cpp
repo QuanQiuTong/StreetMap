@@ -2,8 +2,8 @@
 #include <QWheelEvent>
 
 #include "viewer.h"
-#include "Items.h"
 #include "path.h"
+#include "Items.h"
 using namespace path;
 
 Viewer::Viewer(QGraphicsScene *scene, QWidget *parent)
@@ -25,19 +25,23 @@ void Viewer::mouseDoubleClickEvent(QMouseEvent *event)
 void Viewer::clearPoints()
 {
     while (!selectedPoints.empty())
-        scene()->removeItem(selectedPoints.back()), selectedPoints.pop_back();
+        scene()->removeItem(selectedPoints.back()),
+            delete selectedPoints.back(),
+            selectedPoints.pop_back();
 }
 
 void Viewer::removeLastPoint()
 {
     if (!selectedPoints.empty())
-        scene()->removeItem(selectedPoints.back()), selectedPoints.pop_back();
+        scene()->removeItem(selectedPoints.back()),
+            delete selectedPoints.back(),
+            selectedPoints.pop_back();
 }
 
 void Viewer::clearPath()
 {
     if (shortPath)
-        scene()->removeItem(shortPath), shortPath = nullptr;
+        scene()->removeItem(shortPath), delete shortPath, shortPath = nullptr;
 #if VISIBLE
     visible.clear();
 #endif
@@ -55,7 +59,7 @@ void findAndShow()
     if (!SRC || !DST)
         return;
     if (shortPath)
-        scene->removeItem(shortPath), shortPath = nullptr;
+        scene->removeItem(shortPath),delete shortPath, shortPath = nullptr;
 #if VISIBLE
     visible.clear();
 #endif
@@ -71,9 +75,8 @@ void findAndShow()
 #endif
     // emit showStatusMessage(message);
     statusBar->showMessage(message);
-    QPainterPath painterPath;
     auto it = shortestPath.begin();
-    painterPath.moveTo(*it);
+    QPainterPath painterPath{*it};
     while (++it != shortestPath.end())
         painterPath.lineTo(*it);
     scene->addItem(shortPath = new Path(painterPath));

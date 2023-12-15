@@ -23,7 +23,8 @@ NAMESPACE_OSM
 
 double minlat, minlon, maxlat, maxlon;
 AssocCon<long long, Node> nodes;
-AssocCon<long long, Way> closedways, openways;
+std::vector<Way> closedways, openways;
+// AssocCon<long long, Way> ways;
 // AssocCon<ll, Relation> relations;
 void parse(FILE *fp)
 {
@@ -43,7 +44,7 @@ void parse(FILE *fp)
         TiXmlElement *q = p->FirstChildElement();
         forSibling(q, "nd") w.nd.push_back(ref(q));
         forSibling(q, "tag") w.tag.insert({att(q, "k"), att(q, "v")});
-        (w.nd.front() == w.nd.back() ? closedways : openways).insert({id(p), std::move(w)});
+        (w.nd.front() == w.nd.back() ? closedways : openways).push_back(std::move(w));
     }
     // forSibling(p, "relation")
     // {

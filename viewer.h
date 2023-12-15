@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <QGraphicsView>
+#include <QGraphicsLineItem>
 #include "point.h"
 #include "path.h"
 #include "streetmap.h"
@@ -28,7 +29,7 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 private:
-    std::vector<SelectPoint *> selectedPoints;
+    std::vector<SelectPoint*> selectedPoints;
 };
 
 #define VISIBLE 1
@@ -36,28 +37,32 @@ private:
 #if VISIBLE
 
 #include <QPainter>
-#include <QGraphicsLineItem>
+#include <QGraphicsScene>
+extern QGraphicsScene* scene;
 struct Visible
 {
     class VisibleLine : public QGraphicsLineItem
     {
+
     public:
-        VisibleLine(ll u, ll v, QGraphicsItem *parent = nullptr) : QGraphicsLineItem(Point(u).x, Point(u).y, Point(v).x, Point(v).y, parent) {}
+        VisibleLine(long long u, long long v, QGraphicsItem *parent = nullptr)
+            : QGraphicsLineItem(Point(u).x, Point(u).y, Point(v).x, Point(v).y, parent) {}
         void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
         {
             painter->setPen({Qt::yellow, 3.5 / std::min(painter->transform().m11(), 1.0)});
             painter->drawLine(line());
         }
     };
-    std::vector<VisibleLine *> lines;
-
-public:
-    void addEdge(ll u, ll v) { lines.push_back(new VisibleLine(u, v)), scene->addItem(lines.back()); }
+    std::vector<VisibleLine*> lines;
+    void addLine(long long u, long long v)
+    {
+        lines.push_back(new VisibleLine(u, v));
+        scene->addItem(lines.back());
+    }
     void clear()
     {
-        for (auto line : lines)
-            scene->removeItem(line);
-        lines.clear();
+        while(!lines.empty())
+            scene->removeItem(lines.back()), delete lines.back(), lines.pop_back();
     }
 };
 extern Visible visible;
