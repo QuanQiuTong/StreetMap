@@ -20,7 +20,6 @@ extern QGraphicsScene *pscene;
 
 NAMESPACE_PATH
 
-using ll = long long;
 template <typename Key, typename Val>
 using AssocCon = std::unordered_map<Key, Val>;
 
@@ -29,35 +28,60 @@ extern ll SRC, DST;
 
 void addEdge(ll u, ll v);
 
+std::vector<Point> dijkstra(ll src, ll dst);
+std::vector<Point> aStar(ll src, ll dst);
+std::vector<Point> bidirectionalAStar(ll src, ll dst);
+
 END_NAMESPACE_PATH;
 
-class Receiver : public QObject
+
+#define VISIBLE 1
+
+#if VISIBLE
+
+#include <QPainter>
+#include <QGraphicsLineItem>
+#include <QGraphicsScene>
+
+class VisibleLine : public QGraphicsLineItem
 {
-public slots:
-    void selectSource() { path::SRC = lastSelected; }
-    void selectDestination() { path::DST = lastSelected; }
-    void findAndShow();
-    void clearPath();
-
-private:
-    // struct SourceDestination
-    // {
-    //     bool onWay;
-    //     union
-    //     {
-    //         Point p;
-    //         long long id;
-    //     } point;
-    // } src, dst;
-
-    static Path *shortPath;
+public:
+    VisibleLine(ll u, ll v, QGraphicsItem *parent = nullptr) : QGraphicsLineItem(Point(u).x, Point(u).y, Point(v).x, Point(v).y, parent) {}
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
+    {
+        QPen pen(Qt::yellow, 3.5);
+        pen.setWidthF(pen.widthF() / painter->transform().m11());
+        painter->setPen(pen);
+        painter->drawLine(line());
+    }
+};
+class Visible
+{
+    std::vector<std::pair<ll, ll>> edgesVisited;
+    std::vector<VisibleLine *> lines;
 
 public:
-    Point srcPos, dstPos;
-    path::ll lastSelected;
-    void selectWayPoint(path::ll point);
-    void selectRandomPoint(Point point);
+    void addEdge(ll u, ll v) { edgesVisited.push_back({u, v}); }
+    void printEdgesVisited()
+    {
+        for (auto [u, v] : edgesVisited)
+            printf("%lld %lld\n", u, v);
+    }
+    void show()
+    {
+        for (auto [u, v] : edgesVisited)
+            lines.push_back(new VisibleLine(u, v)),
+            pscene->addItem(lines.back());
+    }
+    void clear()
+    {
+        for (auto line : lines)
+            pscene->removeItem(line);
+        lines.clear();
+        edgesVisited.clear();
+    }
 };
-extern Receiver receiver;
+extern Visible visible;
+#endif
 
 #endif // PATH_H

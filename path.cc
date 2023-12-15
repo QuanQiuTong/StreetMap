@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <QGraphicsScene>
 #include <QGraphicsPathItem>
-#include <QPointF>
 
 #include "Items.h"
 #include "point.h"
@@ -15,110 +14,126 @@ QGraphicsScene *pscene;
 
 NAMESPACE_PATH
 
-AssocCon<ll, std::vector<ll>> path;
+using namespace std; // limited to this file
+
+AssocCon<ll, vector<ll>> path;
 ll SRC, DST;
 void addEdge(ll u, ll v) { path[u].push_back(v), path[v].push_back(u); }
-
-static std::vector<Point> dijkstra(ll src, ll dst)
+struct Node
 {
-    struct Node
-    {
-        ll id;
-        double dist;
-        bool operator<(const Node &other) const { return dist > other.dist; }
-    };
-    std::priority_queue<Node> q;
-    q.push({src, 0});
+    ll id;
+    double dist;
+    bool operator<(const Node &rhs) const { return dist > rhs.dist; }
+};
+vector<Point> dijkstra(ll src, ll dst)
+{
     AssocCon<ll, ll> prev;
     AssocCon<ll, double> dist({{src, 0}});
-    while (!q.empty())
+    for (priority_queue<Node> q(less<Node>(), {{src, 0}}); !q.empty();)
     {
-        auto [u, disu] = q.top();
+        auto u = q.top().id;
         q.pop();
         if (u == dst)
             break;
-        if (disu > dist[u])
-            continue;
-        if (!path.count(u))
-            throw;
-        for (ll v : path[u])
+        for (ll v : path.at(u))
             if (double alt = dist[u] + distance(Point(u), Point(v)); !dist.count(v) || alt < dist[v])
-                dist[v] = alt,
-                prev[v] = u,
-                q.push({v, alt});
+#if VISIBLE
+                visible.addEdge(u, v),
+#endif
+                    dist[v] = alt,
+                    prev[v] = u,
+                    q.push({v, alt});
     }
-    std::vector<Point> ret;
+    vector<Point> ret;
     for (auto u = dst; u != src; u = prev[u])
         ret.push_back(Point(u));
     ret.push_back(Point(src));
-    std::reverse(ret.begin(), ret.end());
+    reverse(ret.begin(), ret.end());
+    return ret;
+}
+
+vector<Point> aStar(ll src, ll dst)
+{
+    AssocCon<ll, ll> prev;
+    AssocCon<ll, double> dist({{src, 0}});
+    for (priority_queue<Node> q(less<Node>(), {{src, 0}}); !q.empty();)
+    {
+        auto u = q.top().id;
+        q.pop();
+        if (u == dst)
+            break;
+        for (ll v : path.at(u))
+            if (double alt = dist[u] + distance(Point(u), Point(v)); !dist.count(v) || alt < dist[v])
+#if VISIBLE
+                visible.addEdge(u, v),
+#endif
+                    dist[v] = alt,
+                    prev[v] = u,
+                    q.push({v, alt + distance(Point(v), Point(dst))});
+    }
+    vector<Point> ret;
+    for (auto u = dst; u != src; u = prev[u])
+        ret.push_back(Point(u));
+    ret.push_back(Point(src));
+    reverse(ret.begin(), ret.end());
+    return ret;
+}
+
+vector<Point> bidirectionalAStar(ll src, ll dst)
+{
+    priority_queue<Node> qForward(less<Node>(), {{src, 0}}), qBackward(less<Node>(), {{dst, 0}});
+    AssocCon<ll, ll> prevForward({{src, src}}), prevBackward({{dst, dst}});
+    AssocCon<ll, double> distForward({{src, 0}}), distBackward({{dst, 0}});
+    ll meetingNode = -1;
+
+    while (!qForward.empty() && !qBackward.empty())
+    {
+        ll uForward = qForward.top().id;
+        qForward.pop();
+        if (prevBackward.count(uForward))
+        {
+            meetingNode = uForward;
+            break;
+        }
+        for (ll vForward : path.at(uForward))
+            if (double alt = distForward[uForward] + distance(Point(uForward), Point(vForward));
+                !distForward.count(vForward) || alt < distForward[vForward])
+#if VISIBLE
+                visible.addEdge(uForward, vForward),
+#endif
+                    distForward[vForward] = alt,
+                    prevForward[vForward] = uForward,
+                    qForward.push({vForward, alt + distance(Point(vForward), Point(dst))});
+
+        ll uBackward = qBackward.top().id;
+        qBackward.pop();
+        if (prevForward.count(uBackward))
+        {
+            meetingNode = uBackward;
+            break;
+        }
+        for (ll vBackward : path.at(uBackward))
+            if (double alt = distBackward[uBackward] + distance(Point(uBackward), Point(vBackward));
+                !distBackward.count(vBackward) || alt < distBackward[vBackward])
+#if VISIBLE
+                visible.addEdge(uBackward, vBackward),
+#endif
+                    distBackward[vBackward] = alt,
+                    prevBackward[vBackward] = uBackward,
+                    qBackward.push({vBackward, alt + distance(Point(vBackward), Point(src))});
+    }
+    vector<Point> ret;
+    for (auto u = meetingNode; u != src;)
+        ret.push_back(Point(u = prevForward[u]));
+    reverse(ret.begin(), ret.end());
+    for (auto u = meetingNode; u != dst; u = prevBackward[u])
+        ret.push_back(Point(u));
+    ret.push_back(Point(dst));
     return ret;
 }
 
 END_NAMESPACE_PATH;
-using namespace path;
 
-Receiver receiver;
-void Receiver::selectWayPoint(long long id)
-{ // printf("0@ SRC: %lld, DST: %lld\n", SRC, DST);
-    if (!SRC)
-        // puts("*1"),
-        SRC = id;
-    else if (!DST)
-        // puts("*2"),
-        DST = id, findAndShow();
-    else
-        // puts("*3"),
-        SRC = DST, srcPos = dstPos, DST = id, dstPos = Point(), findAndShow();
-    // printf("1@ SRC: %lld, DST: %lld\n", SRC, DST);
-}
-extern std::set<long long> waypoints;
-long long nearestPoint(Point point)
-{
-    return *std::min_element(waypoints.begin(), waypoints.end(), [point](auto a, auto b)
-                             { return distance(point, a) < distance(point, b); });
-}
-void Receiver::selectRandomPoint(Point point)
-{ // printf("2@ SRC: %lld, DST: %lld\n", SRC, DST);
-    if (!SRC)
-        // puts("*4"),
-        SRC = nearestPoint(point), srcPos = point;
-    else if (!DST)
-        // puts("*5"),
-        DST = nearestPoint(point), dstPos = point, findAndShow();
-    else
-        // puts("*6"),
-        SRC = DST, srcPos = dstPos, DST = nearestPoint(point), dstPos = point, findAndShow();
-    // printf("3@ SRC: %lld, DST: %lld\n", SRC, DST);
-}
-
-Path *Receiver::shortPath = nullptr;
-
-void Receiver::clearPath()
-{
-    if (shortPath)
-        pscene->removeItem(shortPath), shortPath = nullptr;
-    SRC = DST = 0;
-    srcPos = dstPos = Point();
-}
-
-void Receiver::findAndShow()
-{
-    printf("## SRC: %lld, DST: %lld\n", SRC, DST);
-    if (shortPath)
-        pscene->removeItem(shortPath), shortPath = nullptr;
-    QPainterPath painterPath;
-    std::vector<Point> path = dijkstra(SRC, DST);
-
-    if (srcPos)
-        path.insert(path.begin(), srcPos);
-    if (dstPos)
-        path.push_back(dstPos);
-
-    auto it = path.begin();
-    painterPath.moveTo(*it);
-    while (++it != path.end())
-        painterPath.lineTo(*it);
-    pscene->addItem(shortPath = new Path(painterPath));
-    // pscene->update();
-}
+#if VISIBLE
+Visible visible;
+#endif

@@ -8,7 +8,7 @@
 #include <QPainterPath>
 #include <QPainter>
 #include <QStyleOptionGraphicsItem>
-#include "path.h"
+#include "viewer.h"
 
 static const QColor textColor = Qt::black, outlineColor = Qt::darkGray, backgroundColor = Qt::lightGray;
 class Building : public QGraphicsItem
@@ -45,22 +45,20 @@ public:
 
 class WayPoint : public QGraphicsEllipseItem
 {
-    long long m_id;
+    long long id;
 
 public:
-    WayPoint(double x, double y, double radius = 5, long long id = 0, QGraphicsItem *parent = nullptr)
-        : QGraphicsEllipseItem(x - radius, y - radius, 2 * radius, 2 * radius, parent), m_id(id) { setFlags(ItemIsSelectable); }
-    WayPoint(QPointF p, long long id, double radius = 5, QGraphicsItem *parent = nullptr)
-        : QGraphicsEllipseItem(p.x() - radius, p.y() - radius, 2 * radius, 2 * radius, parent), m_id(id) { setFlags(ItemIsSelectable); }
+    WayPoint(Point p, long long _id, double radius = 5, QGraphicsItem *parent = nullptr)
+        : QGraphicsEllipseItem(p.x - radius, p.y - radius, 2 * radius, 2 * radius, parent), id(_id) { setFlags(ItemIsSelectable); }
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *) override
     {
         painter->setPen(Qt::lightGray);
-        painter->setBrush((option->state & QStyle::State_Selected) ? Qt::green : Qt::white);
+        painter->setBrush((option->state & QStyle::State_Selected)/*|| (id == path::SRC && !receiver.srcPos) || (id == path::DST && !receiver.dstPos)*/? Qt::green : Qt::white);
         painter->drawEllipse(rect());
     }
 
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *) override { receiver.selectWayPoint(m_id); }
+    void mousePressEvent(QGraphicsSceneMouseEvent *) override { receiver.selectWayPoint(id); }
 };
 
 class Path : public QGraphicsItem
@@ -85,19 +83,19 @@ public:
 class SelectPoint : public QGraphicsItem
 {
     static size_t cnt;
-    QPointF point;
+    Point point;
     double radius;
 
 public:
     SelectPoint(QPointF p, QGraphicsItem *parent = nullptr) : QGraphicsItem(parent), point(p), radius(6.0) {}
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *) override
     {
-        radius = 6.0 / painter->transform().m11();
+        radius = 6.0 / std::min(painter->transform().m11(), 1.0);
         painter->setPen(Qt::lightGray);
-        painter->setBrush(Qt::red);
+        painter->setBrush((option->state & QStyle::State_Selected)/*|| point == receiver.srcPos || point == receiver.dstPos*/? Qt::green : Qt::red);
         painter->drawEllipse(point, radius, radius);
     }
-    QRectF boundingRect() const override { return {point.x() - radius, point.y() - radius, 2 * radius, 2 * radius}; }
+    QRectF boundingRect() const override { return {point.x - radius, point.y - radius, 2 * radius, 2 * radius}; }
     QPainterPath shape() const override
     {
         QPainterPath path;

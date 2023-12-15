@@ -23,18 +23,18 @@ NAMESPACE_OSM
 double minlat, minlon, maxlat, maxlon;
 AssocCon<ll, Node> nodes;
 AssocCon<ll, Way> ways;
-AssocCon<ll, Relation> relations;
-void parse(const std::string &filename)
+// AssocCon<ll, Relation> relations;
+static void parse(FILE *fp)
 {
     TiXmlDocument doc;
-    if (!doc.LoadFile(filename))
-        throw std::invalid_argument("File not found");
+    if (!doc.LoadFile(fp))
+        throw std::invalid_argument("File load failed");
     TiXmlElement *p = doc.RootElement()->FirstChildElement();
     while (p && ((TiXmlNode *)p)->ValueTStr() != "bounds")
         p = p->NextSiblingElement();
     minlat = attd(p, "minlat"), minlon = attd(p, "minlon"), maxlat = attd(p, "maxlat"), maxlon = attd(p, "maxlon");
     p = p->NextSiblingElement();
-    nodes.clear(), ways.clear(), relations.clear();
+    nodes.clear(), ways.clear(); // relations.clear();
     forSibling(p, "node") nodes.insert({id(p), {attd(p, "lon"), attd(p, "lat")}});
     forSibling(p, "way")
     {
@@ -43,13 +43,13 @@ void parse(const std::string &filename)
         forSibling(q, "nd") w.nd.push_back(ref(q));
         forSibling(q, "tag") w.tag.insert({att(q, "k"), att(q, "v")});
     }
-    forSibling(p, "relation")
-    {
-        auto &r = relations[id(p)];
-        TiXmlElement *q = p->FirstChildElement();
-        forSibling(q, "member") r.member.push_back({att(q, "type"), ref(q), att(q, "role")});
-        forSibling(q, "nd") r.tag.insert({att(q, "k"), att(q, "v")});
-    }
+    // forSibling(p, "relation")
+    // {
+    //     auto &r = relations[id(p)];
+    //     TiXmlElement *q = p->FirstChildElement();
+    //     forSibling(q, "member") r.member.push_back({att(q, "type"), ref(q), att(q, "role")});
+    //     forSibling(q, "nd") r.tag.insert({att(q, "k"), att(q, "v")});
+    // }
 }
 
 END_NAMESPACE_OSM
@@ -94,21 +94,30 @@ static void loadWay(QGraphicsScene *scene, const Way &way)
     }
 }
 
-void loadScene(QGraphicsScene *scene, const std::string &filename)
+bool loadScene(QGraphicsScene *scene, const std::string &filename)
 {
-    parse(filename); // printf("%zu %zu %zu\n", nodes.size(), ways.size(), relations.size());
+    FILE *fp = fopen(filename.c_str(), "r");
+    if (!fp)
+        return false;
+    parse(fp); // printf("%zu %zu %zu\n", nodes.size(), ways.size(), relations.size());
+    fclose(fp);
 
+#if VISIBLE
+    visible.clear();
+#endif
     path::SRC = path::DST = 0;
     path::path.clear();
+    receiver.srcPos = receiver.dstPos = Point();
     scene->clear();
     scene->setSceneRect(minlon * Point::xScale, maxlat * Point::yScale, (maxlon - minlon) * Point::xScale, (minlat - maxlat) * Point::yScale);
 
     waypoints.clear();
-    for (auto&& p : ways)
+    for (auto &&p : ways)
         loadWay(scene, p.second);
 
     for (auto id : waypoints)
         scene->addItem(new WayPoint(Point(id), id));
 
     pscene = scene;
+    return true;
 }
