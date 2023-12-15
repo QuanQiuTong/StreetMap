@@ -4,7 +4,8 @@
 #include <QMainWindow>
 
 class QGraphicsScene;
-
+extern QGraphicsScene *scene;
+extern QStatusBar *statusBar;
 class StreetMap : public QMainWindow
 {
     Q_OBJECT
@@ -14,8 +15,5 @@ public:
 
 private slots:
     void open();
-
-private:
-    QGraphicsScene *scene;
 };
 #endif // STREETMAP_H

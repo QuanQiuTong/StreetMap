@@ -9,25 +9,6 @@
 #include "path.h"
 using path::SRC, path::DST, path::srcPos, path::dstPos;
 
-static const QColor textColor = Qt::black, outlineColor = Qt::darkGray, backgroundColor = Qt::lightGray;
-class Building : public QGraphicsPolygonItem
-{
-    QString m_text;
-
-public:
-    Building(QPolygonF poly, const QString &text = "", QGraphicsItem *parent = nullptr)
-        : QGraphicsPolygonItem(poly, parent), m_text(text) {}
-
-    void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
-    {
-        painter->setPen(outlineColor);
-        painter->setBrush(backgroundColor);
-        painter->drawPolygon(polygon());
-        painter->setPen(textColor);
-        painter->drawText(boundingRect(), Qt::AlignCenter, m_text);
-    }
-};
-
 class WayPoint : public QGraphicsEllipseItem
 {
     long long id;

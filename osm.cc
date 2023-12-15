@@ -1,4 +1,5 @@
 #include <stdexcept>
+#include <utility>
 
 // Directly included for they cannot be compiled by Make correctly.
 #include "tinyxml.cpp"
@@ -21,8 +22,8 @@ static long long ref(TiXmlElement *p) { return atoll(att(p, "ref")); }
 NAMESPACE_OSM
 
 double minlat, minlon, maxlat, maxlon;
-AssocCon<ll, Node> nodes;
-AssocCon<ll, Way> ways;
+AssocCon<long long, Node> nodes;
+AssocCon<long long, Way> closedways, openways;
 // AssocCon<ll, Relation> relations;
 void parse(FILE *fp)
 {
@@ -34,14 +35,15 @@ void parse(FILE *fp)
         p = p->NextSiblingElement();
     minlat = attd(p, "minlat"), minlon = attd(p, "minlon"), maxlat = attd(p, "maxlat"), maxlon = attd(p, "maxlon");
     p = p->NextSiblingElement();
-    nodes.clear(), ways.clear(); // relations.clear();
+    nodes.clear(), closedways.clear(), openways.clear(); // relations.clear();
     forSibling(p, "node") nodes.insert({id(p), {attd(p, "lon"), attd(p, "lat")}});
     forSibling(p, "way")
     {
-        auto &w = ways[id(p)];
+        Way w;
         TiXmlElement *q = p->FirstChildElement();
         forSibling(q, "nd") w.nd.push_back(ref(q));
         forSibling(q, "tag") w.tag.insert({att(q, "k"), att(q, "v")});
+        (w.nd.front() == w.nd.back() ? closedways : openways).insert({id(p), std::move(w)});
     }
     // forSibling(p, "relation")
     // {
@@ -53,3 +55,8 @@ void parse(FILE *fp)
 }
 
 END_NAMESPACE_OSM
+
+double realDist(long long u, long long v)
+{
+    return distance(osm::nodes.at(u), osm::nodes.at(v));
+}

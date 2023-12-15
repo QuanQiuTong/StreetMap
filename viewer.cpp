@@ -3,6 +3,8 @@
 
 #include "viewer.h"
 #include "Items.h"
+#include "path.h"
+using namespace path;
 
 Viewer::Viewer(QGraphicsScene *scene, QWidget *parent)
     : QGraphicsView(scene, parent) { setDragMode(ScrollHandDrag); }
@@ -42,50 +44,41 @@ void Viewer::clearPath()
     SRC = DST = 0;
     srcPos = dstPos = Point();
 }
+Path *shortPath;
+std::vector<Point> (*Viewer::findShortestPath)(ll, ll) = bidirectionalAStar;
 
-#include "path.h"
-Path* shortPath;
-static std::vector<Point> (*findShortestPath)(ll, ll);
+#include <QStatusBar>
+
 void findAndShow()
 {
-    using namespace path;
     // printf("## SRC: %lld, DST: %lld\n", SRC, DST);
-    if (!SRC || !DST) return;
+    if (!SRC || !DST)
+        return;
     if (shortPath)
-        pscene->removeItem(shortPath), shortPath = nullptr;
+        scene->removeItem(shortPath), shortPath = nullptr;
 #if VISIBLE
     visible.clear();
 #endif
-    std::vector<Point> shortestPath = findShortestPath(SRC, DST);
-#if VISIBLE
-    visible.show();
-#endif
+    std::vector<Point> shortestPath = Viewer::findShortestPath(SRC, DST);
+    double totalLength = totalDist;
     if (srcPos)
-        shortestPath.insert(shortestPath.begin(), srcPos);
+        shortestPath.insert(shortestPath.begin(), srcPos), totalLength += distance(srcPos, osm::nodes.at(SRC));
     if (dstPos)
-        shortestPath.push_back(dstPos);
+        shortestPath.push_back(dstPos), totalLength += distance(dstPos, osm::nodes.at(DST));
+    auto message = QString("Total Length: %1 metres").arg(totalLength);
+#if VISIBLE
+    message += QString(";  Selected Edges: %1;  Visible Edges: %2").arg(shortestPath.size() - 1).arg(visible.lines.size());
+#endif
+    // emit showStatusMessage(message);
+    statusBar->showMessage(message);
     QPainterPath painterPath;
     auto it = shortestPath.begin();
     painterPath.moveTo(*it);
     while (++it != shortestPath.end())
         painterPath.lineTo(*it);
-    pscene->addItem(shortPath = new Path(painterPath));
+    scene->addItem(shortPath = new Path(painterPath));
 }
 
-void Viewer::dijkstra()
-{
-    findShortestPath = path::dijkstra;
-        findAndShow();
-}
-
-void Viewer::astar()
-{
-    findShortestPath = path::aStar;
-        findAndShow();
-}
-
-void Viewer::bidAstar()
-{
-    findShortestPath = path::bidirectionalAStar;
-        findAndShow();
-}
+#if VISIBLE
+Visible visible;
+#endif

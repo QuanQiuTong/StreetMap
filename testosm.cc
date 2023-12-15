@@ -1,8 +1,26 @@
 #include "osm.cc"
+#include <cmath>
 #include <algorithm>
 #include <map>
 using namespace std;
-int main()
+static constexpr double rad(double deg) { return deg * M_PI / 180; }
+static double realDistance(double lon1, double lat1, double lon2, double lat2)
+{
+    constexpr double R = 6378137 /*metres*/;
+
+    double dLat = rad(lat2 - lat1);
+    double dLon = rad(lon2 - lon1);
+    double a = sin(dLat / 2) * sin(dLat / 2) +
+               cos(rad(lat1)) * cos(rad(lat2)) *
+                   sin(dLon / 2) * sin(dLon / 2);
+    double c = 2 * atan2(sqrt(a), sqrt(1 - a)); // asin(sqrt(a)) * 2
+    return R * c;
+}
+int main(){
+    double testdis = realDistance(121.910310, 30.858038, 122.011323, 30.663016);
+    printf("%lf\n", testdis);
+}
+int main1()
 {
     FILE *infile = fopen("map.osm", "r");
     assert(infile);

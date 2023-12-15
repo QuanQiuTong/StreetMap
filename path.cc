@@ -1,16 +1,17 @@
 #include "path.h"
 
-#include <cmath>
 #include <queue>
-#include <set>
 #include <algorithm>
-#include <QGraphicsScene>
-#include <QGraphicsPathItem>
 
-#include "Items.h"
 #include "point.h"
+#include "osm.h"
 
-QGraphicsScene *pscene;
+#include "viewer.h"
+#if VISIBLE
+#define visitEdge(u, v) visible.addEdge(u, v),
+#else
+#define visitEdge(u, v)
+#endif
 
 NAMESPACE_PATH
 
@@ -19,6 +20,7 @@ using namespace std; // limited to this file
 AssocCon<ll, vector<ll>> path;
 ll SRC, DST;
 Point srcPos, dstPos;
+double totalDist;
 
 void addEdge(ll u, ll v) { path[u].push_back(v), path[v].push_back(u); }
 struct Node
@@ -38,14 +40,13 @@ vector<Point> dijkstra(ll src, ll dst)
         if (u == dst)
             break;
         for (ll v : path.at(u))
-            if (double alt = dist[u] + distance(Point(u), Point(v)); !dist.count(v) || alt < dist[v])
-#if VISIBLE
-                visible.addEdge(u, v),
-#endif
+            if (double alt = dist[u] + realDist(u, v); !dist.count(v) || alt < dist[v])
+                visitEdge(u, v)
                     dist[v] = alt,
                     prev[v] = u,
                     q.push({v, alt});
     }
+    totalDist = dist[dst];
     vector<Point> ret;
     for (auto u = dst; u != src; u = prev[u])
         ret.push_back(Point(u));
@@ -65,14 +66,13 @@ vector<Point> aStar(ll src, ll dst)
         if (u == dst)
             break;
         for (ll v : path.at(u))
-            if (double alt = dist[u] + distance(Point(u), Point(v)); !dist.count(v) || alt < dist[v])
-#if VISIBLE
-                visible.addEdge(u, v),
-#endif
+            if (double alt = dist[u] + realDist(u, v); !dist.count(v) || alt < dist[v])
+                visitEdge(u, v)
                     dist[v] = alt,
                     prev[v] = u,
-                    q.push({v, alt + distance(Point(v), Point(dst))});
+                    q.push({v, alt + realDist(v, dst)});
     }
+    totalDist = dist[dst];
     vector<Point> ret;
     for (auto u = dst; u != src; u = prev[u])
         ret.push_back(Point(u));
@@ -98,14 +98,12 @@ vector<Point> bidirectionalAStar(ll src, ll dst)
             break;
         }
         for (ll vForward : path.at(uForward))
-            if (double alt = distForward[uForward] + distance(Point(uForward), Point(vForward));
+            if (double alt = distForward[uForward] + realDist(uForward, vForward);
                 !distForward.count(vForward) || alt < distForward[vForward])
-#if VISIBLE
-                visible.addEdge(uForward, vForward),
-#endif
+                visitEdge(uForward, vForward)
                     distForward[vForward] = alt,
                     prevForward[vForward] = uForward,
-                    qForward.push({vForward, alt + distance(Point(vForward), Point(dst))});
+                    qForward.push({vForward, alt + realDist(vForward, dst)});
 
         ll uBackward = qBackward.top().id;
         qBackward.pop();
@@ -115,15 +113,14 @@ vector<Point> bidirectionalAStar(ll src, ll dst)
             break;
         }
         for (ll vBackward : path.at(uBackward))
-            if (double alt = distBackward[uBackward] + distance(Point(uBackward), Point(vBackward));
+            if (double alt = distBackward[uBackward] + realDist(uBackward, vBackward);
                 !distBackward.count(vBackward) || alt < distBackward[vBackward])
-#if VISIBLE
-                visible.addEdge(uBackward, vBackward),
-#endif
+                visitEdge(uBackward, vBackward)
                     distBackward[vBackward] = alt,
                     prevBackward[vBackward] = uBackward,
-                    qBackward.push({vBackward, alt + distance(Point(vBackward), Point(src))});
+                    qBackward.push({vBackward, alt + realDist(vBackward, src)});
     }
+    totalDist = distForward[meetingNode] + distBackward[meetingNode];
     vector<Point> ret;
     for (auto u = meetingNode; u != src;)
         ret.push_back(Point(u = prevForward[u]));
@@ -135,7 +132,3 @@ vector<Point> bidirectionalAStar(ll src, ll dst)
 }
 
 END_NAMESPACE_PATH;
-
-#if VISIBLE
-Visible visible;
-#endif

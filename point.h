@@ -21,12 +21,12 @@ struct Point
         x = lon * xScale, y = lat * yScale;
     }
 
+    operator osm::Node() const { return {x / xScale, y / yScale}; }
     operator QPointF() const { return {x, y}; }
 
     // bool operator<(const Point &rhs) const { return x < rhs.x || (x == rhs.x && y < rhs.y); }
     operator bool() const { return x || y; }
     friend bool operator==(Point p, Point q) { return p.x == q.x && p.y == q.y; }
-    friend double distance(Point p, Point q) { return hypot(p.x - q.x, p.y - q.y); }
 };
 
 long long nearestPoint(Point point);
