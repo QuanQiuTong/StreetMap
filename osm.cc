@@ -24,7 +24,7 @@ double minlat, minlon, maxlat, maxlon;
 AssocCon<ll, Node> nodes;
 AssocCon<ll, Way> ways;
 // AssocCon<ll, Relation> relations;
-static void parse(FILE *fp)
+void parse(FILE *fp)
 {
     TiXmlDocument doc;
     if (!doc.LoadFile(fp))
@@ -53,71 +53,3 @@ static void parse(FILE *fp)
 }
 
 END_NAMESPACE_OSM
-
-#include <set>
-#include <QGraphicsScene>
-#include <QGraphicsPathItem>
-
-#include "Items.h"
-#include "path.h"
-#include "osm.h"
-#include "point.h"
-
-using namespace osm; // only in this file
-
-std::set<ll> waypoints;
-static void loadWay(QGraphicsScene *scene, const Way &way)
-{
-    if (way.nd.front() == way.nd.back()) // closed way
-    {
-        QPolygonF polygon;
-        for (auto nd : way.nd)
-            polygon << Point(nd);
-        if (way.tag.count("building"))
-            scene->addItem(new Building(polygon));
-        else
-            scene->addPolygon(polygon);
-    }
-    else if (way.tag.count("highway")) // open way
-    {
-        QPainterPath painterPath;
-        auto it = way.nd.begin();
-        painterPath.moveTo(Point(*it));
-        waypoints.insert(*it);
-        while (++it != way.nd.end())
-        {
-            painterPath.lineTo(Point(*it));
-            waypoints.insert(*it);
-            path::addEdge(*it, *(it - 1));
-        }
-        scene->addItem(new QGraphicsPathItem(painterPath));
-    }
-}
-
-bool loadScene(QGraphicsScene *scene, const std::string &filename)
-{
-    FILE *fp = fopen(filename.c_str(), "r");
-    if (!fp)
-        return false;
-    parse(fp); // printf("%zu %zu %zu\n", nodes.size(), ways.size(), relations.size());
-    fclose(fp);
-
-#if VISIBLE
-    visible.clear();
-#endif
-    path::SRC = path::DST = 0;
-    path::path.clear();
-    receiver.srcPos = receiver.dstPos = Point();
-    scene->clear();
-    scene->setSceneRect(minlon * Point::xScale, maxlat * Point::yScale, (maxlon - minlon) * Point::xScale, (minlat - maxlat) * Point::yScale);
-
-    waypoints.clear();
-    for (auto &&p : ways)
-        loadWay(scene, p.second);
-
-    for (auto id : waypoints)
-        scene->addItem(new WayPoint(Point(id), id));
-
-    pscene = scene;
-    return true;
-}

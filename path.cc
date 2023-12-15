@@ -18,6 +18,8 @@ using namespace std; // limited to this file
 
 AssocCon<ll, vector<ll>> path;
 ll SRC, DST;
+Point srcPos, dstPos;
+
 void addEdge(ll u, ll v) { path[u].push_back(v), path[v].push_back(u); }
 struct Node
 {

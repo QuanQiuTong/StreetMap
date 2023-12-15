@@ -41,16 +41,11 @@ struct Relation
     AssocCon<std::string, std::string> tag;
 };
 
-// template <typename Metadata>
-// struct element : public Metadata
-// {
-//     ll id;
-// };
-
 extern double minlat, minlon, maxlat, maxlon;
 extern AssocCon<ll, Node> nodes;
 extern AssocCon<ll, Way> ways;
 // extern AssocCon<ll, Relation> relations;
+void parse(FILE *fp);
 
 END_NAMESPACE_OSM
 

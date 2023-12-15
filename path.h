@@ -4,6 +4,7 @@
 #include <cmath>
 #include <vector>
 #include <unordered_map>
+#include <algorithm>
 #include <QObject>
 
 #include "osm.h"
@@ -25,6 +26,7 @@ using AssocCon = std::unordered_map<Key, Val>;
 
 extern AssocCon<ll, std::vector<ll>> path;
 extern ll SRC, DST;
+extern Point srcPos, dstPos;
 
 void addEdge(ll u, ll v);
 
@@ -33,7 +35,6 @@ std::vector<Point> aStar(ll src, ll dst);
 std::vector<Point> bidirectionalAStar(ll src, ll dst);
 
 END_NAMESPACE_PATH;
-
 
 #define VISIBLE 1
 
@@ -49,9 +50,7 @@ public:
     VisibleLine(ll u, ll v, QGraphicsItem *parent = nullptr) : QGraphicsLineItem(Point(u).x, Point(u).y, Point(v).x, Point(v).y, parent) {}
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
     {
-        QPen pen(Qt::yellow, 3.5);
-        pen.setWidthF(pen.widthF() / painter->transform().m11());
-        painter->setPen(pen);
+        painter->setPen({Qt::yellow, 3.5 / std::min(painter->transform().m11(), 1.0)});
         painter->drawLine(line());
     }
 };
@@ -62,16 +61,11 @@ class Visible
 
 public:
     void addEdge(ll u, ll v) { edgesVisited.push_back({u, v}); }
-    void printEdgesVisited()
-    {
-        for (auto [u, v] : edgesVisited)
-            printf("%lld %lld\n", u, v);
-    }
     void show()
     {
         for (auto [u, v] : edgesVisited)
             lines.push_back(new VisibleLine(u, v)),
-            pscene->addItem(lines.back());
+                pscene->addItem(lines.back());
     }
     void clear()
     {

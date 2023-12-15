@@ -3,7 +3,7 @@
 
 #include <vector>
 #include <QGraphicsView>
-class QGraphicsScene;
+#include "point.h"
 class SelectPoint;
 
 class Viewer : public QGraphicsView
@@ -14,38 +14,18 @@ public:
 public slots:
     void clearPoints();
     void removeLastPoint();
+    void clearPath();
+    void dijkstra();
+    void astar();
+    void bidAstar();
 
 protected:
     void wheelEvent(QWheelEvent *) override;
     void mouseDoubleClickEvent(QMouseEvent *event) override;
 
 private:
-    QGraphicsScene *m_scene;
     std::vector<SelectPoint *> selectedPoints;
 };
-
-#include "point.h"
-class Path;
-class Receiver : public QObject
-{
-    Q_OBJECT
-public slots:
-    void findAndShow();
-    void clearPath();
-    void dijkstra();
-    void astar();
-    void bidAstar();
-
-private:
-    Path *shortPath;
-    std::vector<Point> (*findShortestPath)(ll, ll);
-
-public:
-    Point srcPos, dstPos;
-    Receiver();
-    void selectWayPoint(long long point);
-    void selectRandomPoint(Point point);
-};
-extern Receiver receiver;
+void findAndShow();
 
 #endif // VIEWER_H

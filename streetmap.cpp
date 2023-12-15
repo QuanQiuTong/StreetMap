@@ -24,44 +24,31 @@ StreetMap::StreetMap(QWidget *parent) : QMainWindow(parent)
 
     setWindowTitle(tr("StreetMap"));
 
-    auto openAction = new QAction(tr("&Open"), this);
-    connect(openAction, &QAction::triggered, this, &StreetMap::open);
-
-//    auto srcAction = new QAction(tr("&Select Starting Position"), this);
-//    connect(srcAction, &QAction::triggered, &receiver, &Receiver::selectSource);
-//    auto dstAction = new QAction(tr("Select Ending Position"), this);
-//    connect(dstAction, &QAction::triggered, &receiver, &Receiver::selectDestination);
-//    auto pathAction = new QAction(tr("Find Shortest Path"), this);
-//    connect(pathAction, &QAction::triggered, &receiver, &Receiver::findAndShow);
-    auto unshowPathAction = new QAction(tr("Unshow Path"), this);
-    connect(unshowPathAction, &QAction::triggered, &receiver, &Receiver::clearPath);
-
-    auto clrAction = new QAction(tr("Clear Selected Points"), this);
-    connect(clrAction, &QAction::triggered, viewer, &Viewer::clearPoints);
-    auto rmvAction = new QAction(tr("Remove Last Selected Point"), this);
-    connect(rmvAction, &QAction::triggered, viewer, &Viewer::removeLastPoint);
-
-    auto dijkstraAction = new QAction(tr("Dijkstra"), this);
-    connect(dijkstraAction, &QAction::triggered, &receiver, &Receiver::dijkstra);
-    auto astarAction = new QAction(tr("A*"), this);
-    connect(astarAction, &QAction::triggered, &receiver, &Receiver::astar);
-    auto bidAstarAction = new QAction(tr("Bidirectional A*"), this);
-    connect(bidAstarAction, &QAction::triggered, &receiver, &Receiver::bidAstar);
-
     auto fileMenu = menuBar()->addMenu(tr("&File"));
+    auto openAction = new QAction(tr("&Open"));
+    connect(openAction, &QAction::triggered, this, &StreetMap::open);
     fileMenu->addAction(openAction);
 
     auto pathMenu = menuBar()->addMenu(tr("&Path"));
-//    pathMenu->addAction(srcAction);
-//    pathMenu->addAction(dstAction);
-//    pathMenu->addAction(pathAction);
+    auto unshowPathAction = new QAction(tr("Unshow Path"));
+    connect(unshowPathAction, &QAction::triggered, viewer, &Viewer::clearPath);
     pathMenu->addAction(unshowPathAction);
 
     auto selectMenu = menuBar()->addMenu(tr("&Select"));
+    auto clrAction = new QAction(tr("Clear Selected Points"));
+    connect(clrAction, &QAction::triggered, viewer, &Viewer::clearPoints);
+    auto rmvAction = new QAction(tr("Remove Last Selected Point"));
+    connect(rmvAction, &QAction::triggered, viewer, &Viewer::removeLastPoint);
     selectMenu->addAction(clrAction);
     selectMenu->addAction(rmvAction);
 
     auto algoMenu = menuBar()->addMenu(tr("&Algorithm"));
+    auto dijkstraAction = new QAction(tr("Dijkstra"));
+    connect(dijkstraAction, &QAction::triggered, viewer, &Viewer::dijkstra);
+    auto astarAction = new QAction(tr("A*"));
+    connect(astarAction, &QAction::triggered, viewer, &Viewer::astar);
+    auto bidAstarAction = new QAction(tr("Bidirectional A*"));
+    connect(bidAstarAction, &QAction::triggered, viewer, &Viewer::bidAstar);
     algoMenu->addAction(dijkstraAction);
     algoMenu->addAction(astarAction);
     algoMenu->addAction(bidAstarAction);
