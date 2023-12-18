@@ -1,13 +1,12 @@
 #include "path.h"
 
 #include <queue>
-#include <algorithm>
 
 #include "point.h"
 #include "osm.h"
 
-#include "viewer.h"
 #if VISIBLE
+#include "viewer.h"
 #define visitEdge(u, v) visible.addLine(u, v),
 #else
 #define visitEdge(u, v)
@@ -15,7 +14,7 @@
 
 NAMESPACE_PATH
 
-using namespace std; // limited to this file
+using namespace std;
 
 AssocCon<ll, vector<ll>> path;
 ll SRC, DST;
@@ -45,6 +44,31 @@ vector<Point> dijkstra(ll src, ll dst)
                     dist[v] = alt,
                     prev[v] = u,
                     q.push({v, alt});
+    }
+    totalDist = dist[dst];
+    vector<Point> ret;
+    for (auto u = dst; u != src; u = prev[u])
+        ret.push_back(Point(u));
+    ret.push_back(Point(src));
+    reverse(ret.begin(), ret.end());
+    return ret;
+}
+
+vector<Point> dijkstraFast(ll src, ll dst)
+{
+    AssocCon<ll, ll> prev;
+    AssocCon<ll, double> dist({{src, 0}});
+    for (priority_queue<Node> q(less<Node>(), {{src, 0}}); !q.empty();)
+    {
+        auto u = q.top().id;
+        q.pop();
+        if (u == dst)
+            break;
+        for (ll v : path.at(u))
+            if (double alt = dist[u] + realDist(u, v); !dist.count(v) || alt < dist[v])
+                dist[v] = alt,
+                prev[v] = u,
+                q.push({v, alt});
     }
     totalDist = dist[dst];
     vector<Point> ret;

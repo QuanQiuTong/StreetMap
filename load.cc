@@ -6,6 +6,7 @@
 #include "path.h"
 #include "osm.h"
 #include "point.h"
+#include "load.h"
 
 using namespace osm; // only in this file
 
@@ -13,10 +14,10 @@ std::unordered_set<ll> waypoints;
 long long nearestPoint(Point point)
 {
     return *std::min_element(waypoints.begin(), waypoints.end(), [point](ll a, ll b)
-                             { return distance(point, nodes.at(a)) < distance(point, nodes.at(b)); });
+                             { return _dist(point, nodes.at(a)) < _dist(point, nodes.at(b)); });
 }
 
-static void loadClosedWay(const Way &way)
+void loadClosedWay(const Way &way)
 {
     QPolygonF polygon;
     for (auto nd : way.nd)
@@ -29,10 +30,8 @@ static void loadClosedWay(const Way &way)
         scene->addPolygon(polygon, QPen(Qt::darkGray), QBrush(QColor(238, 238, 221)));
 }
 
-static void loadOpenWay(const Way &way)
+void loadOpenWay(const Way &way)
 {
-    if(!way.tag.count("highway"))
-        return;
     auto it = way.nd.begin();
     QPainterPath painterPath{Point(*it)};
     waypoints.insert(*it);
@@ -47,25 +46,22 @@ static void loadOpenWay(const Way &way)
 
 bool loadScene(const std::string &filename)
 {
-    FILE *fp = fopen(filename.c_str(), "r");
-    if (!fp)
+    if (!parse(filename))
         return false;
-    parse(fp); // printf("%zu %zu %zu\n", nodes.size(), ways.size(), relations.size());
-    fclose(fp);
-
 #if VISIBLE
     visible.clear();
 #endif
     path::SRC = path::DST = path::srcPos = path::dstPos = Point();
     path::path.clear();
     scene->clear();
-    scene->setSceneRect(minlon * Point::xScale, maxlat * Point::yScale, (maxlon - minlon) * Point::xScale, (minlat - maxlat) * Point::yScale);
     waypoints.clear();
 
+    scene->setSceneRect(minlon * Point::xScale, maxlat * Point::yScale, (maxlon - minlon) * Point::xScale, (minlat - maxlat) * Point::yScale);
     for (auto &&w : closedways)
         loadClosedWay(w);
     for (auto &&w : openways)
         loadOpenWay(w);
+    closedways.clear(), openways.clear();
     for (auto id : waypoints)
         scene->addItem(new WayPoint(Point(id), id));
     return true;
