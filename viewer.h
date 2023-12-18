@@ -39,25 +39,30 @@ private:
 #include <QPainter>
 #include <QGraphicsScene>
 extern QGraphicsScene* scene;
+static constexpr QColor lightBlue(173,216,230);
 struct Visible
 {
-    class VisibleLine : public QGraphicsLineItem
-    {
+    // class VisibleLine : public QGraphicsLineItem
+    // {
 
-    public:
-        VisibleLine(long long u, long long v, QGraphicsItem *parent = nullptr)
-            : QGraphicsLineItem(Point(u).x, Point(u).y, Point(v).x, Point(v).y, parent) {}
-        void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
-        {
-            painter->setPen({Qt::yellow, 3.5 / std::min(painter->transform().m11(), 1.0)});
-            painter->drawLine(line());
-        }
-    };
-    std::vector<VisibleLine*> lines;
-    void addLine(long long u, long long v)
-    {
-        lines.push_back(new VisibleLine(u, v));
-        scene->addItem(lines.back());
+    // public:
+    //     VisibleLine(long long u, long long v, QGraphicsItem *parent = nullptr)
+    //         : QGraphicsLineItem(Point(u).x, Point(u).y, Point(v).x, Point(v).y, parent) {}
+    //     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
+    //     {
+    //         painter->setPen({Qt::yellow, 3.5 / std::min(painter->transform().m11(), 1.0)});
+    //         painter->drawLine(line());
+    //     }
+    // };
+    // std::vector<VisibleLine*> lines;
+    // void addLine(long long u, long long v)
+    // {
+    //     lines.push_back(new VisibleLine(u, v));
+    //     scene->addItem(lines.back());
+    // }
+    std::vector<QGraphicsLineItem*> lines;
+    void addLine(long long u,long long v){
+        lines.push_back(scene->addLine(Point(u).x, Point(u).y, Point(v).x, Point(v).y,QPen(lightBlue, 100)));
     }
     void clear()
     {

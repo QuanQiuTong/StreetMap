@@ -6,13 +6,14 @@
 #include "tinyxmlparser.cpp"
 #include "tinyxmlerror.cpp"
 #define forSibling(p, t) for (; p && ((TiXmlNode *)p)->ValueTStr() == t; p = p->NextSiblingElement())
-static const char *att(TiXmlElement *p, const char *attr)
-{
-    const char *ret = p->Attribute(attr); // printf("# %s - %s\n", attr, ret);
-    if (!ret)
-        throw std::invalid_argument("Attribute " + std::string(attr) + " not found");
-    return ret;
-}
+// static const char *att(TiXmlElement *p, const char *attr)
+//{
+//     const char *ret = p->Attribute(attr);
+//     if (!ret)
+//         throw std::invalid_argument("Attribute " + std::string(attr) + " not found");
+//     return ret;
+// }
+#define att(p, attr) (p->Attribute(attr))
 static double attd(TiXmlElement *p, const char *attr) { return atof(att(p, attr)); }
 static long long id(TiXmlElement *p) { return atoll(att(p, "id")); }
 static long long ref(TiXmlElement *p) { return atoll(att(p, "ref")); }
@@ -44,7 +45,10 @@ void parse(FILE *fp)
         TiXmlElement *q = p->FirstChildElement();
         forSibling(q, "nd") w.nd.push_back(ref(q));
         forSibling(q, "tag") w.tag.insert({att(q, "k"), att(q, "v")});
-        (w.nd.front() == w.nd.back() ? closedways : openways).push_back(std::move(w));
+        if (w.nd.front() == w.nd.back()) // ::loadClosedWay(w);
+            closedways.push_back(std::move(w));
+        else if (w.tag.count("highway")) // ::loadOpenWay(w);
+            openways.push_back(std::move(w));
     }
     // forSibling(p, "relation")
     // {

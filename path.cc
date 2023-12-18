@@ -1,7 +1,6 @@
 #include "path.h"
 
 #include <queue>
-#include <algorithm>
 
 #include "point.h"
 #include "osm.h"
@@ -15,7 +14,7 @@
 
 NAMESPACE_PATH
 
-using namespace std; // limited to this file
+using namespace std;
 
 AssocCon<ll, vector<ll>> path;
 ll SRC, DST;

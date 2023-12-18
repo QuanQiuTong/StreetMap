@@ -24,15 +24,13 @@ static void loadClosedWay(const Way &way)
     if (way.tag.count("building"))
         scene->addPolygon(polygon, QPen(Qt::darkGray), QBrush(Qt::lightGray));
     else if (way.tag.count("landuse"))
-        scene->addPolygon(polygon, QPen(Qt::darkGray), QBrush(QColor(144, 238, 144)));
+        scene->addPolygon(polygon, QPen(Qt::darkGray), QBrush(QColor(192, 244, 192)));
     else
         scene->addPolygon(polygon, QPen(Qt::darkGray), QBrush(QColor(238, 238, 221)));
 }
 
 static void loadOpenWay(const Way &way)
 {
-    if(!way.tag.count("highway"))
-        return;
     auto it = way.nd.begin();
     QPainterPath painterPath{Point(*it)};
     waypoints.insert(*it);
@@ -50,7 +48,7 @@ bool loadScene(const std::string &filename)
     FILE *fp = fopen(filename.c_str(), "r");
     if (!fp)
         return false;
-    parse(fp); // printf("%zu %zu %zu\n", nodes.size(), ways.size(), relations.size());
+    parse(fp);
     fclose(fp);
 
 #if VISIBLE
@@ -59,9 +57,9 @@ bool loadScene(const std::string &filename)
     path::SRC = path::DST = path::srcPos = path::dstPos = Point();
     path::path.clear();
     scene->clear();
-    scene->setSceneRect(minlon * Point::xScale, maxlat * Point::yScale, (maxlon - minlon) * Point::xScale, (minlat - maxlat) * Point::yScale);
     waypoints.clear();
 
+    scene->setSceneRect(minlon * Point::xScale, maxlat * Point::yScale, (maxlon - minlon) * Point::xScale, (minlat - maxlat) * Point::yScale);
     for (auto &&w : closedways)
         loadClosedWay(w);
     for (auto &&w : openways)

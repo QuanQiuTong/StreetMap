@@ -59,7 +59,7 @@ void findAndShow()
     if (!SRC || !DST)
         return;
     if (shortPath)
-        scene->removeItem(shortPath),delete shortPath, shortPath = nullptr;
+        scene->removeItem(shortPath), delete shortPath, shortPath = nullptr;
 #if VISIBLE
     visible.clear();
 #endif
@@ -69,7 +69,7 @@ void findAndShow()
         shortestPath.insert(shortestPath.begin(), srcPos), totalLength += distance(srcPos, osm::nodes.at(SRC));
     if (dstPos)
         shortestPath.push_back(dstPos), totalLength += distance(dstPos, osm::nodes.at(DST));
-    auto message = QString("Total Length: %1 metres").arg(totalLength);
+    QString message = QString("Total Length: %1 metres").arg(totalLength);
 #if VISIBLE
     message += QString(";  Selected Edges: %1;  Visible Edges: %2").arg(shortestPath.size() - 1).arg(visible.lines.size());
 #endif

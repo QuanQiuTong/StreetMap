@@ -22,9 +22,16 @@ using AssocCon = std::unordered_map<Key, Val>;
 struct Node
 {
     double lon, lat;
+    static double rad(double deg) { return deg * M_PI / 180; }
+#define FAST_DISTANCE 1
+#if FAST_DISTANCE
     friend double distance(Node p, Node q)
     {
-        auto rad = [](double deg) { return deg * M_PI / 180; };
+        return hypot(p.lon - q.lon, p.lat - q.lat) * (M_PI * 6378137 / 180);
+    }
+#else
+    friend double distance(Node p, Node q)
+    {
         double dLat = rad(q.lat - p.lat);
         double dLon = rad(q.lon - p.lon);
         double a = sin(dLat / 2) * sin(dLat / 2) +
@@ -32,6 +39,7 @@ struct Node
                        sin(dLon / 2) * sin(dLon / 2);
         return 2 * 6378137 * asin(sqrt(a));
     }
+#endif
 };
 struct Way
 {
@@ -53,8 +61,8 @@ struct Way
 extern double minlat, minlon, maxlat, maxlon;
 extern AssocCon<long long, Node> nodes;
 extern std::vector<Way> closedways, openways;
-//extern AssocCon<long long, Way> ways;
-// extern AssocCon<long long, Relation> relations;
+// extern AssocCon<long long, Way> ways;
+//  extern AssocCon<long long, Relation> relations;
 
 void parse(FILE *);
 
