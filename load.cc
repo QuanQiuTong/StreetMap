@@ -62,8 +62,10 @@ bool loadScene(const std::string &filename)
     scene->setSceneRect(minlon * Point::xScale, maxlat * Point::yScale, (maxlon - minlon) * Point::xScale, (minlat - maxlat) * Point::yScale);
     for (auto &&w : closedways)
         loadClosedWay(w);
+    closedways.clear();
     for (auto &&w : openways)
         loadOpenWay(w);
+    openways.clear();
     for (auto id : waypoints)
         scene->addItem(new WayPoint(Point(id), id));
     return true;
