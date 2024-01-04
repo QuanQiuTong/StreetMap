@@ -1,3 +1,8 @@
+/**
+ * @file load.cc
+ * @brief Implementation of the loadScene function.
+ */
+
 #include <unordered_set>
 #include <QGraphicsScene>
 #include <QGraphicsPathItem>
@@ -10,12 +15,25 @@
 using namespace osm;
 
 std::unordered_set<ll> waypoints;
+/**
+ * @brief Find the nearest point.
+ * 
+ * This function finds the nearest point to the given target point.
+ * 
+ * @param point The target point.
+ * @return long long The index of the nearest point.
+ */
 long long nearestPoint(Point point)
 {
     return *std::min_element(waypoints.begin(), waypoints.end(), [point](ll a, ll b)
                              { return distance(point, nodes.at(a)) < distance(point, nodes.at(b)); });
 }
 
+/**
+ * @brief Loads a closed way into the scene as a polygon.
+ * 
+ * @param way The Way object representing the closed way to be loaded.
+ */
 static void loadClosedWay(const Way &way)
 {
     QPolygonF polygon;
@@ -29,6 +47,11 @@ static void loadClosedWay(const Way &way)
         scene->addPolygon(polygon, QPen(Qt::darkGray), QBrush(QColor(238, 238, 221)));
 }
 
+/**
+ * @brief Loads an open way into the scene.
+ * 
+ * @param way The Way object representing the open way to be loaded.
+ */
 static void loadOpenWay(const Way &way)
 {
     auto it = way.nd.begin();
@@ -43,6 +66,14 @@ static void loadOpenWay(const Way &way)
     scene->addItem(new QGraphicsPathItem(painterPath));
 }
 
+/**
+ * @brief Loads a scene from a file.
+ * 
+ * This function loads a scene from the specified file. It opens the file, parses its contents, and populates the scene with the data.
+ * 
+ * @param filename The name of the file to load the scene from.
+ * @return True if the scene was successfully loaded, false otherwise.
+ */
 bool loadScene(const std::string &filename)
 {
     FILE *fp = fopen(filename.c_str(), "r");

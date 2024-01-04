@@ -21,13 +21,35 @@ ll SRC, DST;
 Point srcPos, dstPos;
 double totalDist;
 
+/**
+ * @brief Adds an edge between two vertices in the path.
+ * 
+ * This function adds an undirected edge between the vertices 'u' and 'v' in the path.
+ * 
+ * @param u The first vertex.
+ * @param v The second vertex.
+ */
 void addEdge(ll u, ll v) { path[u].push_back(v); path[v].push_back(u); }
+
+/**
+ * @brief Internal class for use in the shortest path algorithms.
+ * 
+ */
 struct Node
 {
     ll id;
     double dist;
     bool operator<(const Node &rhs) const { return dist > rhs.dist; }
 };
+
+
+/**
+ * @brief Performs Dijkstra's algorithm to find the shortest path between two points.
+ * 
+ * @param src The source point.
+ * @param dst The destination point.
+ * @return A vector of points representing the shortest path from src to dst.
+ */
 vector<Point> dijkstra(ll src, ll dst)
 {
     AssocCon<ll, ll> prev;
@@ -54,6 +76,13 @@ vector<Point> dijkstra(ll src, ll dst)
     return ret;
 }
 
+/**
+ * @brief Executes the A* algorithm to find the shortest path between two points.
+ * 
+ * @param src The source point.
+ * @param dst The destination point.
+ * @return vector<Point> The shortest path from source to destination.
+ */
 vector<Point> aStar(ll src, ll dst)
 {
     AssocCon<ll, ll> prev;
@@ -80,6 +109,13 @@ vector<Point> aStar(ll src, ll dst)
     return ret;
 }
 
+/**
+ * Performs the bidirectional A* algorithm to find the shortest path between two points.
+ * 
+ * @param src The source point.
+ * @param dst The destination point.
+ * @return A vector of points representing the shortest path from src to dst.
+ */
 vector<Point> bidirectionalAStar(ll src, ll dst)
 {
     priority_queue<Node> qForward(less<Node>(), {{src, 0}}), qBackward(less<Node>(), {{dst, 0}});

@@ -1,9 +1,15 @@
+/**
+ * @file osm.cc
+ * @brief Implementation of the osm namespace functions.
+ */
+
 //#include <stdexcept>
 
 // Directly included for they cannot be compiled by Make correctly.
 #include "tinyxml.cpp"
 #include "tinyxmlparser.cpp"
 #include "tinyxmlerror.cpp"
+
 #define forSibling(p, t) for (; p && ((TiXmlNode *)p)->ValueTStr() == t; p = p->NextSiblingElement())
 // static const char *att(TiXmlElement *p, const char *attr)
 //{
@@ -26,6 +32,15 @@ AssocCon<long long, Node> nodes;
 std::vector<Way> closedways, openways;
 // AssocCon<long long, Way> ways;
 // AssocCon<ll, Relation> relations;
+
+/**
+ * @brief Parse the OpenStreetMap XML file.
+ * 
+ * This function parses the OpenStreetMap XML file and populates the necessary data structures.
+ * 
+ * @param fp The file pointer to the OpenStreetMap XML file.
+ * @throws std::invalid_argument if the file load fails.
+ */
 void parse(FILE *fp)
 {
     TiXmlDocument doc;
@@ -60,6 +75,15 @@ void parse(FILE *fp)
 
 END_NAMESPACE_OSM
 
+/**
+ * @brief Calculate the real distance between two nodes.
+ * 
+ * This is a wrapper function for the distance function in the osm namespace.
+ * 
+ * @param u The ID of the first node.
+ * @param v The ID of the second node.
+ * @return The real distance between the two nodes.
+ */
 double realDist(long long u, long long v)
 {
     return distance(osm::nodes.at(u), osm::nodes.at(v));
