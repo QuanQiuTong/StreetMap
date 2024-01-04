@@ -40,7 +40,7 @@ struct Path : public QGraphicsPathItem
     Path(QPainterPath path, QGraphicsItem *parent = nullptr) : QGraphicsPathItem(path, parent) {}
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *, QWidget *) override
     {
-        painter->setPen({Qt::red, 4 / std::min(painter->transform().m11(), 1.0)});
+        painter->setPen({Qt::red, 5 / std::min(painter->transform().m11(), 1.0)});
         painter->drawPath(path());
     }
 };

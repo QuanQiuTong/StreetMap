@@ -7,7 +7,7 @@
 #include "osm.h"
 #include "point.h"
 
-using namespace osm; // only in this file
+using namespace osm;
 
 std::unordered_set<ll> waypoints;
 long long nearestPoint(Point point)

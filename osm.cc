@@ -1,5 +1,4 @@
-#include <stdexcept>
-#include <utility>
+//#include <stdexcept>
 
 // Directly included for they cannot be compiled by Make correctly.
 #include "tinyxml.cpp"
@@ -14,9 +13,9 @@
 //     return ret;
 // }
 #define att(p, attr) (p->Attribute(attr))
-static double attd(TiXmlElement *p, const char *attr) { return atof(att(p, attr)); }
-static long long id(TiXmlElement *p) { return atoll(att(p, "id")); }
-static long long ref(TiXmlElement *p) { return atoll(att(p, "ref")); }
+static inline double attd(TiXmlElement *p, const char *attr) { return atof(att(p, attr)); }
+static inline long long id(TiXmlElement *p) { return atoll(att(p, "id")); }
+static inline long long ref(TiXmlElement *p) { return atoll(att(p, "ref")); }
 
 #include "osm.h"
 
@@ -46,9 +45,9 @@ void parse(FILE *fp)
         forSibling(q, "nd") w.nd.push_back(ref(q));
         forSibling(q, "tag") w.tag.insert({att(q, "k"), att(q, "v")});
         if (w.nd.front() == w.nd.back()) // ::loadClosedWay(w);
-            closedways.push_back(std::move(w));
+            closedways.push_back(static_cast<Way&&>(w));
         else if (w.tag.count("highway")) // ::loadOpenWay(w);
-            openways.push_back(std::move(w));
+            openways.push_back(static_cast<Way&&>(w));
     }
     // forSibling(p, "relation")
     // {

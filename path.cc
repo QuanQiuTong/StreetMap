@@ -21,7 +21,7 @@ ll SRC, DST;
 Point srcPos, dstPos;
 double totalDist;
 
-void addEdge(ll u, ll v) { path[u].push_back(v), path[v].push_back(u); }
+void addEdge(ll u, ll v) { path[u].push_back(v); path[v].push_back(u); }
 struct Node
 {
     ll id;

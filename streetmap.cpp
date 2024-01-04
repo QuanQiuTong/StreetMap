@@ -9,6 +9,7 @@
 #include "streetmap.h"
 #include "viewer.h"
 #include "path.h"
+#include "Items.h"
 
 QGraphicsScene* scene;
 QStatusBar* statusBar;
@@ -28,7 +29,9 @@ StreetMap::StreetMap(QWidget *parent) : QMainWindow(parent)
 
     auto fileMenu = menuBar()->addMenu(tr("&File"));
     auto openAction = new QAction(tr("&Open"));
-    connect(openAction, &QAction::triggered, this, &StreetMap::open);
+    connect(openAction, &QAction::triggered, this, [this]
+            {std::string filename = QFileDialog::getOpenFileName(this, tr("Select Map"), ".", tr("OpenStreetMap files (*.osm)")).toStdString();
+             if (!filename.empty()) loadScene(filename);});
     fileMenu->addAction(openAction);
 
     auto pathMenu = menuBar()->addMenu(tr("&Path"));
@@ -38,29 +41,24 @@ StreetMap::StreetMap(QWidget *parent) : QMainWindow(parent)
 
     auto selectMenu = menuBar()->addMenu(tr("&Select"));
     auto clrAction = new QAction(tr("Clear Selected Points"));
-    connect(clrAction, &QAction::triggered, viewer, &Viewer::clearPoints);
+    connect(clrAction, &QAction::triggered, scene,[]
+            {while (!selectedPoints.empty()) scene->removeItem(selectedPoints.back()), delete selectedPoints.back(), selectedPoints.pop_back();});
     auto rmvAction = new QAction(tr("Remove Last Selected Point"));
-    connect(rmvAction, &QAction::triggered, viewer, &Viewer::removeLastPoint);
+    connect(rmvAction, &QAction::triggered, scene,[]
+            {if (!selectedPoints.empty()) scene->removeItem(selectedPoints.back()), delete selectedPoints.back(), selectedPoints.pop_back();});
     selectMenu->addAction(clrAction);
     selectMenu->addAction(rmvAction);
 
     auto algoMenu = menuBar()->addMenu(tr("&Algorithm"));
     auto dijkstraAction = new QAction(tr("Dijkstra"));
-    connect(dijkstraAction, &QAction::triggered, viewer, &Viewer::dijk);
+    connect(dijkstraAction, &QAction::triggered, viewer, []{ findShortestPath = path::dijkstra, findAndShow(); });
     auto astarAction = new QAction(tr("A*"));
-    connect(astarAction, &QAction::triggered, viewer, &Viewer::astar);
+    connect(astarAction, &QAction::triggered, viewer, []{ findShortestPath = path::aStar, findAndShow(); });
     auto bidAstarAction = new QAction(tr("Bidirectional A*"));
-    connect(bidAstarAction, &QAction::triggered, viewer, &Viewer::bidAstar);
+    connect(bidAstarAction, &QAction::triggered, viewer, []{ findShortestPath = path::bidirectionalAStar, findAndShow(); });
     algoMenu->addAction(dijkstraAction);
     algoMenu->addAction(astarAction);
     algoMenu->addAction(bidAstarAction);
 
     ::statusBar = this->statusBar();
-}
-
-void StreetMap::open()
-{
-    std::string filename = QFileDialog::getOpenFileName(this, tr("Select Map"), ".", tr("OpenStreetMap files (*.osm)")).toStdString();
-    if (!filename.empty())
-        loadScene(filename);
 }

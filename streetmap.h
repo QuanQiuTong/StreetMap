@@ -12,8 +12,5 @@ class StreetMap : public QMainWindow
 
 public:
     StreetMap(QWidget *parent = nullptr);
-
-private slots:
-    void open();
 };
 #endif // STREETMAP_H

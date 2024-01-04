@@ -27,7 +27,7 @@ struct Node
 #if FAST_DISTANCE
     friend double distance(Node p, Node q)
     {
-        return hypot(p.lon - q.lon, p.lat - q.lat) * (M_PI * 6378137 / 180);
+        return hypot((p.lon - q.lon) * 0.8544, p.lat - q.lat) * (M_PI * 6378137 / 180);
     }
 #else
     friend double distance(Node p, Node q)
